@@ -22,6 +22,7 @@ import io.ballerina.lib.avro.serialize.ArraySerializer;
 import io.ballerina.lib.avro.serialize.EnumSerializer;
 import io.ballerina.lib.avro.serialize.FixedSerializer;
 import io.ballerina.lib.avro.serialize.MapSerializer;
+import io.ballerina.lib.avro.serialize.MessageFactory;
 import io.ballerina.lib.avro.serialize.PrimitiveSerializer;
 import io.ballerina.lib.avro.serialize.RecordSerializer;
 import io.ballerina.lib.avro.serialize.Serializer;
@@ -33,12 +34,14 @@ import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.values.BArray;
+import io.ballerina.runtime.api.values.BDecimal;
 import io.ballerina.runtime.api.values.BMap;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,32 +98,42 @@ public class SerializeVisitor implements ISerializeVisitor {
 
     @Override
     public Object visit(PrimitiveSerializer primitiveSerializer, Object data) throws Exception {
-        switch (primitiveSerializer.getSchema().getType()) {
+        return switch (primitiveSerializer.getSchema().getType()) {
             case INT -> {
-                return ((Long) data).intValue();
+                if (data instanceof Long longValue) {
+                    yield longValue.intValue();
+                }
+                yield data;
             }
             case FLOAT -> {
-                return ((Double) data).floatValue();
+                if (data instanceof Double doubleValue) {
+                    yield doubleValue.floatValue();
+                }
+                yield data;
+            }
+            case DOUBLE -> {
+                if (data instanceof Long longValue) {
+                    yield longValue.doubleValue();
+                } else if (data instanceof BDecimal decimalValue) {
+                    yield decimalValue.floatValue();
+                }
+                yield data;
             }
             case BYTES -> {
                 ByteBuffer byteBuffer = ByteBuffer.allocate(((BArray) data).getByteArray().length);
                 byteBuffer.put(((BArray) data).getByteArray());
                 byteBuffer.position(0);
-                return byteBuffer;
+                yield byteBuffer;
             }
-            case STRING -> {
-                return data.toString();
-            }
+            case STRING -> data.toString();
             case NULL -> {
                 if (data != null) {
                     throw new Exception("The value does not match with the null schema");
                 }
-                return null;
+                yield null;
             }
-            default -> {
-                return data;
-            }
-        }
+            default -> data;
+        };
     }
 
     public Map<String, Object> visit(MapSerializer mapSerializer, BMap<?, ?> data) throws Exception {
@@ -156,96 +169,42 @@ public class SerializeVisitor implements ISerializeVisitor {
         return Objects.requireNonNull(visitor).visit(data, arraySerializer.getSchema(), array);
     }
 
+    public ArrayList<Integer> deriveBallerinaTag(Schema schema) {
+        ArrayList<Integer> tags = new ArrayList<>();
+        switch (schema.getType()) {
+            case STRING, ENUM -> tags.add(TypeTags.STRING_TAG);
+            case FLOAT, DOUBLE -> {
+                tags.add(TypeTags.FLOAT_TAG);
+                tags.add(TypeTags.DECIMAL_TAG);
+                tags.add(TypeTags.INT_TAG);
+            }
+            case LONG, INT -> tags.add(TypeTags.INT_TAG);
+            case BOOLEAN -> tags.add(TypeTags.BOOLEAN_TAG);
+            case NULL -> tags.add(TypeTags.NULL_TAG);
+            case RECORD -> tags.add(TypeTags.RECORD_TYPE_TAG);
+            case ARRAY -> tags.add(TypeTags.ARRAY_TAG);
+            case MAP -> tags.add(TypeTags.MAP_TAG);
+            case BYTES, FIXED -> {
+                tags.add(TypeTags.BYTE_TAG);
+                tags.add(TypeTags.BYTE_ARRAY_TAG);
+                tags.add(TypeTags.ARRAY_TAG);
+            }
+            default -> tags.add(TypeTags.ANYDATA_TAG);
+        }
+        return tags;
+    }
+
     public Object visit(UnionSerializer unionSerializer, Object data) throws Exception {
         Schema fieldSchema = unionSerializer.getSchema();
         Type typeName = TypeUtils.getType(data);
-        switch (typeName.getTag()) {
-            case TypeTags.STRING_TAG -> {
-                return visitUnionStrings(data, fieldSchema);
-            }
-            case TypeTags.ARRAY_TAG -> {
-                return visitUnionArrays(data, fieldSchema);
-            }
-            case TypeTags.MAP_TAG -> {
-                return new MapSerializer(fieldSchema).convert(this, data);
-            }
-            case TypeTags.RECORD_TYPE_TAG -> {
-                Schema schema = getRecordSchema(Schema.Type.RECORD, fieldSchema.getTypes());
-                return new RecordSerializer(schema).convert(this, data);
-            }
-            case TypeTags.INT_TAG -> {
-                return visitUnionIntegers(data, fieldSchema);
-            }
-            case TypeTags.FLOAT_TAG -> {
-                return visitUnionFloats(data, fieldSchema);
-            }
-            default -> {
-                return data;
+        List<Schema> types = fieldSchema.getTypes();
+        for (Schema type : types) {
+            ArrayList<Integer> tags = deriveBallerinaTag(type);
+            if (tags.contains(typeName.getTag())) {
+                Serializer serializer = MessageFactory.createMessage(type);
+                return Objects.requireNonNull(serializer).convert(this, data);
             }
         }
-    }
-
-    private Object visitUnionFloats(Object data, Schema fieldSchema) {
-        return fieldSchema.getTypes().stream()
-                .filter(schema -> schema.getType().equals(Schema.Type.FLOAT))
-                .findFirst()
-                .map(schema -> {
-                    try {
-                        return new PrimitiveSerializer(schema).convert(this, data);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .orElse(data);
-    }
-
-    private Object visitUnionIntegers(Object data, Schema fieldSchema) {
-        return fieldSchema.getTypes().stream()
-                .filter(schema -> schema.getType().equals(Schema.Type.INT))
-                .findFirst()
-                .map(schema -> {
-                    try {
-                        return new PrimitiveSerializer(schema).convert(this, data);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .orElse(data);
-    }
-
-    private Object visitUnionStrings(Object data, Schema fieldSchema) throws Exception {
-        return fieldSchema.getTypes().stream()
-                .filter(type -> type.getType().equals(Schema.Type.ENUM))
-                .findFirst()
-                .map(type -> visit(new EnumSerializer(type), data))
-                .orElse(visit(new PrimitiveSerializer(fieldSchema), data.toString()));
-    }
-
-    private Object visitUnionArrays(Object data, Schema fieldSchema) throws Exception {
-        for (Schema schema : fieldSchema.getTypes()) {
-            switch (schema.getType()) {
-                case BYTES -> {
-                    return new PrimitiveSerializer(schema).convert(this, data);
-                }
-                case FIXED -> {
-                    return new FixedSerializer(schema).convert(this, data);
-                }
-                case ARRAY -> {
-                    return new ArraySerializer(schema).convert(this, data);
-                }
-            }
-        }
-        return new ArraySerializer(fieldSchema).convert(this, data);
-    }
-
-    public static Schema getRecordSchema(Schema.Type givenType, List<Schema> schemas) {
-        for (Schema schema: schemas) {
-            if (schema.getType().equals(Schema.Type.UNION)) {
-                getRecordSchema(givenType, schema.getTypes());
-            } else if (schema.getType().equals(givenType)) {
-                return schema;
-            }
-        }
-        return null;
+        throw new Exception("Value does not match with the Avro union types");
     }
 }

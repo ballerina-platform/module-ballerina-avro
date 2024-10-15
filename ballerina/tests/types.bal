@@ -271,7 +271,6 @@ public type Envelope2 record {
     string? MessageSource;
 };
 
-
 public type UnionEnumRecord record {
     string|Numbers? field1;
 };
@@ -286,6 +285,36 @@ public type UnionRec record {
 
 public type ReadOnlyRec readonly & record {
     string|UnionEnumRecord? & readonly field1;
+};
+
+type Record record {
+    decimal? hrdCasinoGgrLt;
+    string? hrdAccountCreationTimestamp;
+    float? hrdSportsBetCountLifetime;
+    float? hrdSportsFreeBetAmountLifetime;
+    string? hriUnityId;
+    string? hrdLastRealMoneySportsbookBetTs;
+    string? hrdLoyaltyTier;
+    string? rowInsertTimestampEst;
+    float? ltvSports365Total;
+    string? hrdFirstDepositTimestamp;
+    boolean? hrdVipStatus;
+    string? hrdLastRealMoneyCasinoWagerTs;
+    float? hrdSportsCashBetAmountLifetime;
+    string? hrdAccountStatus;
+    string? hrdAccountId;
+    float? ltvAllVerticals365Total;
+    boolean? hrdOptInSms;
+    float? ltvCasino365Total;
+    string? hrdAccountSubStatus;
+    float? hrdCasinoTotalWagerLifetime;
+    float? hrdSportsGgrLt;
+    string? currentGeoSegment;
+    string? kycStatus;
+    string? signupGeoSegment;
+    float? hrdSportsBetAmountLifetime;
+    boolean? hrdOptInEmail;
+    boolean? hrdOptInPush;
 };
 
 type ReadOnlyUnionFixed UnionFixedRecord & readonly;
@@ -334,3 +363,4 @@ type FloatArray float[];
 type EnumArray Numbers[];
 type Enum2DArray Numbers[][];
 type ReadOnlyString2DArray string[][] & readonly;
+type DataRecord record{};

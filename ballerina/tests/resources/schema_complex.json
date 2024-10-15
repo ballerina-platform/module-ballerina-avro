@@ -1,0 +1,196 @@
+{
+    "connect.name": "io.confluent.ksql.avro_schemas.KsqlDataSourceSchema",
+    "fields": [
+        {
+        "name": "hrdCasinoGgrLt",
+        "type": [
+            "null",
+            "double"
+        ]
+        },
+        {
+        "name": "hrdAccountCreationTimestamp",
+        "type": [
+            "null",
+            "string"
+        ]
+        },
+        {
+        "name": "hrdSportsBetCountLifetime",
+        "type": [
+            "null",
+            "double"
+        ]
+        },
+        {
+        "name": "hrdSportsFreeBetAmountLifetime",
+        "type": [
+            "null",
+            "double"
+        ]
+        },
+        {
+        "name": "hriUnityId",
+        "type": [
+            "null",
+            "string"
+        ]
+        },
+        {
+        "name": "hrdLastRealMoneySportsbookBetTs",
+        "type": [
+            "null",
+            "string"
+        ]
+        },
+        {
+        "name": "hrdLoyaltyTier",
+        "type": [
+            "null",
+            "string"
+        ]
+        },
+        {
+        "name": "rowInsertTimestampEst",
+        "type": [
+            "null",
+            "string"
+        ]
+        },
+        {
+        "name": "ltvSports365Total",
+        "type": [
+            "null",
+            "double"
+        ]
+        },
+        {
+        "name": "hrdFirstDepositTimestamp",
+        "type": [
+            "null",
+            "string"
+        ]
+        },
+        {
+        "name": "hrdVipStatus",
+        "type": [
+            "null",
+            "boolean"
+        ]
+        },
+        {
+        "name": "hrdLastRealMoneyCasinoWagerTs",
+        "type": [
+            "null",
+            "string"
+        ]
+        },
+        {
+        "name": "hrdSportsCashBetAmountLifetime",
+        "type": [
+            "null",
+            "double"
+        ]
+        },
+        {
+        "name": "hrdAccountStatus",
+        "type": [
+            "null",
+            "string"
+        ]
+        },
+        {
+        "name": "hrdAccountId",
+        "type": [
+            "null",
+            "string"
+        ]
+        },
+        {
+        "name": "ltvAllVerticals365Total",
+        "type": [
+            "null",
+            "double"
+        ]
+        },
+        {
+        "name": "hrdOptInSms",
+        "type": [
+            "null",
+            "boolean"
+        ]
+        },
+        {
+        "name": "ltvCasino365Total",
+        "type": [
+            "null",
+            "double"
+        ]
+        },
+        {
+        "name": "hrdAccountSubStatus",
+        "type": [
+            "null",
+            "string"
+        ]
+        },
+        {
+        "name": "hrdCasinoTotalWagerLifetime",
+        "type": [
+            "null",
+            "double"
+        ]
+        },
+        {
+        "name": "hrdSportsGgrLt",
+        "type": [
+            "null",
+            "double"
+        ]
+        },
+        {
+        "name": "currentGeoSegment",
+        "type": [
+            "null",
+            "string"
+        ]
+        },
+        {
+        "name": "kycStatus",
+        "type": [
+            "null",
+            "string"
+        ]
+        },
+        {
+        "name": "signupGeoSegment",
+        "type": [
+            "null",
+            "string"
+        ]
+        },
+        {
+        "name": "hrdSportsBetAmountLifetime",
+        "type": [
+            "null",
+            "double"
+        ]
+        },
+        {
+        "name": "hrdOptInEmail",
+        "type": [
+            "null",
+            "boolean"
+        ]
+        },
+        {
+        "name": "hrdOptInPush",
+        "type": [
+            "null",
+            "boolean"
+        ]
+        }
+    ],
+    "name": "Record",
+    "type": "record"
+}

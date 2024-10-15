@@ -134,3 +134,67 @@ public isolated function testNullValuesWithNonNullData() returns error? {
     byte[]|error serializedValue = avro.toAvro("string");
     test:assertTrue(serializedValue is error);
 }
+
+@test:Config {
+   groups: ["primitive"]
+}
+public isolated function testUnsignedShortValue() returns error? {
+    string schema = string `
+        {
+            "type": "int",
+            "name" : "shortValue", 
+            "namespace": "data"
+        }`;
+
+    int:Unsigned8 value = 255;
+    return verifyOperation(int:Unsigned8, value, schema);
+}
+
+@test:Config {
+   groups: ["primitive", "check"]
+}
+public isolated function testSignedShortValue() returns error? {
+    string schema = string `
+        {
+            "type": "int",
+            "name" : "shortValue", 
+            "namespace": "data"
+        }`;
+
+    int:Signed32 value = 555950000;
+    return verifyOperation(int:Signed32, value, schema);
+}
+
+@test:Config {
+   groups: ["primitive", "check"]
+}
+public isolated function testSignedMinusShortValue() returns error? {
+    string schema = string `
+        {
+            "type": "double",
+            "name" : "shortValue", 
+            "namespace": "data"
+        }`;
+
+    int:Signed32 value = -2147483;
+    Schema avro = check new (schema);
+    byte[] serializedValue = check avro.toAvro(value);
+    float deserializedValue = check avro.fromAvro(serializedValue);
+    test:assertEquals(deserializedValue, -2147483.0);
+}
+
+@test:Config {
+   groups: ["primitive", "check"]
+}
+public isolated function testByteValue() returns error? {
+    string schema = string `
+        {
+            "type": "bytes",
+            "name" : "byteValue", 
+            "namespace": "data"
+        }`;
+    byte[] data = [];
+    byte value = 2;
+    data.push(value);
+    return verifyOperation(ByteArray, data, schema);
+}

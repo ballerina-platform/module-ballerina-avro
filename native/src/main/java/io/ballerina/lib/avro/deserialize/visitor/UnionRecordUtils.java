@@ -39,41 +39,26 @@ public class UnionRecordUtils {
 
     public static void visitUnionRecords(Type type, BMap<BString, Object> ballerinaRecord,
                                          Schema.Field field, Object fieldData) throws Exception {
+        int size = ballerinaRecord.size();
         for (Schema schemaType : field.schema().getTypes()) {
             if (fieldData == null) {
                 ballerinaRecord.put(StringUtils.fromString(field.name()), null);
                 break;
             }
             switch (schemaType.getType()) {
-                case BYTES:
-                    handleBytesField(field, fieldData, ballerinaRecord);
-                    break;
-                case FIXED:
-                    handleFixedField(field, fieldData, ballerinaRecord);
-                    break;
-                case ARRAY:
-                    handleArrayField(field, fieldData, ballerinaRecord, schemaType);
-                    break;
-                case MAP:
-                    handleMapField(field, fieldData, ballerinaRecord);
-                    break;
-                case RECORD:
-                    handleRecordField(type, field, fieldData, ballerinaRecord, schemaType);
-                    break;
-                case STRING:
-                    handleStringField(field, fieldData, ballerinaRecord);
-                    break;
-                case INT, LONG:
-                    handleIntegerField(field, fieldData, ballerinaRecord);
-                    break;
-                case FLOAT, DOUBLE:
-                    handleFloatField(field, fieldData, ballerinaRecord);
-                    break;
-                case ENUM:
-                    handleEnumField(field, fieldData, ballerinaRecord);
-                    break;
-                default:
-                    handleDefaultField(field, fieldData, ballerinaRecord);
+                case BYTES -> handleBytesField(field, fieldData, ballerinaRecord);
+                case FIXED -> handleFixedField(field, fieldData, ballerinaRecord);
+                case ARRAY -> handleArrayField(field, fieldData, ballerinaRecord, schemaType);
+                case MAP -> handleMapField(field, fieldData, ballerinaRecord);
+                case RECORD -> handleRecordField(type, field, fieldData, ballerinaRecord, schemaType);
+                case STRING -> handleStringField(field, fieldData, ballerinaRecord);
+                case INT, LONG -> handleIntegerField(field, fieldData, ballerinaRecord);
+                case FLOAT, DOUBLE -> handleFloatField(field, fieldData, ballerinaRecord);
+                case ENUM -> handleEnumField(field, fieldData, ballerinaRecord);
+                default -> handleDefaultField(field, fieldData, ballerinaRecord);
+            }
+            if (ballerinaRecord.size() != size) {
+                break;
             }
         }
     }

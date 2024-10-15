@@ -1,7 +1,7 @@
 [package]
 org = "ballerina"
 name = "avro"
-version = "1.0.1"
+version = "1.0.2"
 authors = ["Ballerina"]
 export=["avro"]
 keywords = ["avro", "serialization", "deserialization", "serdes"]
@@ -18,8 +18,8 @@ graalvmCompatible = true
 [[platform.java17.dependency]]
 groupId = "io.ballerina.lib"
 artifactId = "avro-native"
-version = "1.0.1"
-path = "../native/build/libs/avro-native-1.0.1.jar"
+version = "1.0.2"
+path = "../native/build/libs/avro-native-1.0.2-SNAPSHOT.jar"
 
 [[platform.java17.dependency]]
 groupId = "org.apache.avro"

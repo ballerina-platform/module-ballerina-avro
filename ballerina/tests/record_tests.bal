@@ -370,3 +370,99 @@ public isolated function testOptionalMultipleFieldsInRecords() returns error? {
     };
     return verifyOperation(Lecturer6, lecturer6, schema);
 }
+
+@test:Config {
+    groups: ["record", "union"]
+}
+public isolated function testTypeCastingInRecords() returns error? {
+    string jsonFileName = string `tests/resources/schema_complex.json`;
+    string schema = (check io:fileReadJson(jsonFileName)).toString();
+    Record recordValue = {
+        hrdCasinoGgrLt: 4999.01,
+        hrdAccountCreationTimestamp: "2024-02-25T20:50:37.891782",
+        hrdSportsBetCountLifetime: 77,
+        hrdSportsFreeBetAmountLifetime: 0,
+        hriUnityId: "807612199",
+        hrdLastRealMoneySportsbookBetTs: "2024-04-24T20:15:51.932",
+        hrdLoyaltyTier: "MEMBER_TIER",
+        rowInsertTimestampEst: "2024-09-23T03:29:43.431",
+        ltvSports365Total: 0,
+        hrdFirstDepositTimestamp: "2024-02-25T20:56:24.109021",
+        hrdVipStatus: true,
+        hrdLastRealMoneyCasinoWagerTs: null,
+        hrdSportsCashBetAmountLifetime: 731,
+        hrdAccountStatus: "ACTIVE",
+        hrdAccountId: "1362347172559585332",
+        ltvAllVerticals365Total: 0,
+        hrdOptInSms: false,
+        ltvCasino365Total: null,
+        hrdAccountSubStatus: null,
+        hrdCasinoTotalWagerLifetime: null,
+        hrdSportsGgrLt: 4999.01,
+        currentGeoSegment: "HRD_FLORIDA",
+        kycStatus: "VERIFIED",
+        signupGeoSegment: "HRD_FLORIDA",
+        hrdSportsBetAmountLifetime: 731,
+        hrdOptInEmail: false,
+        hrdOptInPush: false
+    };
+    Schema avro = check new (schema);
+    byte[] serializedValue = check avro.toAvro(recordValue);
+    Record deserializedValue = check avro.fromAvro(serializedValue);
+    
+    json expected = {
+        "hrdCasinoGgrLt":4999.01,
+        "hrdAccountCreationTimestamp":"2024-02-25T20:50:37.891782",
+        "hrdSportsFreeBetAmountLifetime":0.0,
+        "hriUnityId":"807612199",
+        "hrdLastRealMoneySportsbookBetTs":"2024-04-24T20:15:51.932",
+        "hrdLoyaltyTier":"MEMBER_TIER",
+        "rowInsertTimestampEst":"2024-09-23T03:29:43.431",
+        "ltvSports365Total":0.0,
+        "hrdVipStatus":true,
+        "hrdSportsBetCountLifetime":77.0,
+        "hrdLastRealMoneyCasinoWagerTs":null,
+        "hrdSportsCashBetAmountLifetime":731.0,
+        "hrdAccountStatus":"ACTIVE",
+        "hrdAccountId":"1362347172559585332",
+        "ltvAllVerticals365Total":0.0,
+        "ltvCasino365Total":null,
+        "hrdAccountSubStatus":null,
+        "hrdCasinoTotalWagerLifetime":null,
+        "hrdSportsGgrLt":4999.01,
+        "currentGeoSegment":"HRD_FLORIDA",
+        "kycStatus":"VERIFIED",
+        "hrdOptInSms":false,
+        "hrdFirstDepositTimestamp":"2024-02-25T20:56:24.109021",
+        "signupGeoSegment":"HRD_FLORIDA",
+        "hrdSportsBetAmountLifetime":731.0,
+        "hrdOptInEmail":false,
+        "hrdOptInPush":false
+    };
+    test:assertEquals(deserializedValue.toJson(), expected.toJson());
+}
+
+@test:Config {
+    groups: ["record", "union"]
+}
+public isolated function testUnionsWithRecords() returns error? {
+    string schema = string `{
+        "type": "record",
+        "name": "DataRecord",
+        "namespace": "data",
+        "fields": [
+            {
+            "name": "shortValue",
+            "type": ["null", "int", "double"]
+            }
+        ]
+    }`;
+    int:Signed16 short = 5555;
+    json value = {
+        "shortValue": short
+    };
+    Schema avro = check new (schema);
+    byte[] serializedValue = check avro.toAvro(value);
+    DataRecord deserializedValue = check avro.fromAvro(serializedValue);
+    test:assertEquals(deserializedValue, value);
+}
