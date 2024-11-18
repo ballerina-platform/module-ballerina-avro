@@ -196,7 +196,7 @@ public class SerializeVisitor implements ISerializeVisitor {
 
     public Object visit(UnionSerializer unionSerializer, Object data) throws Exception {
         Schema fieldSchema = unionSerializer.getSchema();
-        Type typeName = TypeUtils.getType(data);
+        Type typeName = TypeUtils.getImpliedType(TypeUtils.getType(data));
         List<Schema> types = fieldSchema.getTypes();
         for (Schema type : types) {
             ArrayList<Integer> tags = deriveBallerinaTag(type);
