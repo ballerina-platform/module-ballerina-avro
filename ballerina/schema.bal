@@ -16,16 +16,17 @@
 
 import ballerina/jballerina.java;
 
+# The avro schema implementation to support Avro serialization and deserialization.
 public class Schema {
 
-    # Generates a schema for a given data type.
+    # Initializes the Avro schema with the given schema definition.
     #
     # ```ballerina
     # avro:Schema schema = check new(string `{"type": "int", "name" : "intValue", "namespace": "data" }`);
     # ```
     #
-    # + schema - The Avro schema string
-    # + return - An `avro:Error` if the schema is not valid or else `()`
+    # + schema - The Avro schema definition as a string
+    # + return - An `avro:Error` if the schema is not valid, otherwise nil
     public isolated function init(string schema) returns Error? {
         self.generateSchema(schema);
     }
@@ -39,7 +40,7 @@ public class Schema {
     # ```ballerina
     # avro:Schema schema = check new(string `{"type": "int", "name" : "data", "namespace": "example.avro" }`);
     # int value = 5;
-    # byte[] serializedData = check avro.toAvro(value);
+    # byte[] serializedData = check schema.toAvro(value);
     # ```
     #
     # + data - The data to be serialized
@@ -52,13 +53,13 @@ public class Schema {
     #
     # ```ballerina
     # avro:Schema schema = check new(string `{"type": "int", "name" : "data", "namespace": "example.avro" }`);
-    # byte[] data = // Avro encoded message ;
+    # byte[] data = [10] //Avro encoded message;
     # int deserializedData = check schema.fromAvro(data);
     # ```
     #
-    # + data - The Avro serialized data
-    # + targetType - Default parameter use to infer the user specified type
-    # + return - A deserialized data with the given type or else an `avro:Error`
+    # + data - The Avro serialized data to be deserialized
+    # + targetType - The type to be deserialized, inferred from the return type
+    # + return - A deserialized data for the given type or else an `avro:Error`
     public isolated function fromAvro(byte[] data, typedesc<anydata> targetType = <>)
         returns targetType|Error = @java:Method {
         'class: "io.ballerina.lib.avro.Avro"
