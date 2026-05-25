@@ -7,39 +7,39 @@ export=["avro"]
 keywords = ["avro", "serialization", "deserialization", "serdes"]
 repository = "https://github.com/ballerina-platform/module-ballerina-avro"
 license = ["Apache-2.0"]
-distribution = "2201.12.0"
+distribution = "2201.14.0-SNAPSHOT"
 
 [build-options]
 observabilityIncluded = true
 
-[platform.java21]
+[platform.java25]
 graalvmCompatible = true
 
-[[platform.java21.dependency]]
+[[platform.java25.dependency]]
 groupId = "io.ballerina.lib"
 artifactId = "avro-native"
 version = "@toml.version@"
 path = "../native/build/libs/avro-native-@project.version@.jar"
 
-[[platform.java21.dependency]]
+[[platform.java25.dependency]]
 groupId = "org.apache.avro"
 artifactId = "avro"
 version = "@avro.version@"
 path = "./lib/avro-@avro.version@.jar"
 
-[[platform.java21.dependency]]
+[[platform.java25.dependency]]
 groupId = "com.fasterxml.jackson.core"
 artifactId = "jackson-core"
 version = "@jackson.version@"
 path = "./lib/jackson-core-@jackson.version@.jar"
 
-[[platform.java17.dependency]]
+[[platform.java25.dependency]]
 groupId = "com.fasterxml.jackson.core"
 artifactId = "jackson-annotations"
 version = "@jackson.version@"
 path = "./lib/jackson-annotations-@jackson.version@.jar"
 
-[[platform.java17.dependency]]
+[[platform.java25.dependency]]
 groupId = "com.fasterxml.jackson.core"
 artifactId = "jackson-databind"
 version = "@jackson.version@"

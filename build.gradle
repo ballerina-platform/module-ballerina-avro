@@ -62,6 +62,15 @@ allprojects {
 }
 
 subprojects {
+
+    plugins.withId('java') {
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(25)
+            }
+        }
+    }
+
     configurations {
         ballerinaStdLibs
         jbalTools
@@ -90,7 +99,7 @@ release {
     }
 }
 
-task build {
+tasks.named('build') {
     dependsOn('avro-native:build')
     dependsOn('avro-ballerina:build')
     dependsOn('avro-examples:build')
