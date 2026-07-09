@@ -7,7 +7,7 @@ export=["avro"]
 keywords = ["avro", "serialization", "deserialization", "serdes"]
 repository = "https://github.com/ballerina-platform/module-ballerina-avro"
 license = ["Apache-2.0"]
-distribution = "2201.14.0-SNAPSHOT"
+distribution = "2201.14.0"
 
 [build-options]
 observabilityIncluded = true
