@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
-## Fixed
+### Fixed
 
 - [Security vulnerabilities with Jackson library](https://github.com/ballerina-platform/ballerina-library/issues/8924)
 
