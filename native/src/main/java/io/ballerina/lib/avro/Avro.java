@@ -51,10 +51,15 @@ public final class Avro {
 
     private Avro() {}
 
-    public static void generateSchema(BObject schemaObject, BString schema) {
-        Schema.Parser parser = new Schema.Parser();
-        Schema nativeSchema = parser.parse(schema.getValue());
-        schemaObject.addNativeData(AVRO_SCHEMA, nativeSchema);
+    public static Object generateSchema(BObject schemaObject, BString schema) {
+        try {
+            Schema.Parser parser = new Schema.Parser();
+            Schema nativeSchema = parser.parse(schema.getValue());
+            schemaObject.addNativeData(AVRO_SCHEMA, nativeSchema);
+            return null;
+        } catch (Exception e) {
+            return createError("Avro schema generation error", e);
+        }
     }
 
     public static Object toAvro(BObject schemaObject, Object data) {
