@@ -404,6 +404,7 @@ public isolated function testInvalidSchemaInitialization() returns error? {
     test:assertTrue(avro is Error);
     if avro is Error {
         test:assertEquals(avro.message(), "Avro schema generation error");
+        test:assertTrue(avro.cause() is error);
     }
 }
 
@@ -420,5 +421,6 @@ public isolated function testInvalidAvroSchemaStructure() returns error? {
     test:assertTrue(avro is Error);
     if avro is Error {
         test:assertEquals(avro.message(), "Avro schema generation error");
+        test:assertTrue(avro.cause() is error);
     }
 }
