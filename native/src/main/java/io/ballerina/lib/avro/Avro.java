@@ -44,6 +44,7 @@ import java.util.Objects;
 
 import static io.ballerina.lib.avro.Utils.AVRO_SCHEMA;
 import static io.ballerina.lib.avro.Utils.DESERIALIZATION_ERROR;
+import static io.ballerina.lib.avro.Utils.SCHEMA_GENERATION_ERROR;
 import static io.ballerina.lib.avro.Utils.SERIALIZATION_ERROR;
 import static io.ballerina.lib.avro.Utils.createError;
 
@@ -58,7 +59,7 @@ public final class Avro {
             schemaObject.addNativeData(AVRO_SCHEMA, nativeSchema);
             return null;
         } catch (Exception e) {
-            return createError("Avro schema generation error", e);
+            return createError(SCHEMA_GENERATION_ERROR, e);
         }
     }
 
