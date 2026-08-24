@@ -35,6 +35,7 @@ public final class Utils {
 
     public static final String AVRO_SCHEMA = "avroSchema";
     public static final String ERROR_TYPE = "Error";
+    public static final String SCHEMA_GENERATION_ERROR = "Avro schema generation error";
     public static final String SERIALIZATION_ERROR = "Avro serialization error";
     public static final String DESERIALIZATION_ERROR = "Avro deserialization error";
 

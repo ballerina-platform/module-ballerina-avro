@@ -394,3 +394,41 @@ public function testComplexDbSchemaWithNestedRecords() returns error? {
     };
     return verifyOperation(Envelope2, envelope2, schema);
 }
+
+@test:Config {
+    groups: ["errors", "schema"]
+}
+public isolated function testInvalidSchemaInitialization() returns error? {
+    string schema = "invalid-schema-string";
+    Schema|Error avro = new (schema);
+    test:assertTrue(avro is Error);
+    if avro is Error {
+        test:assertEquals(avro.message(), "Avro schema generation error");
+        error? cause = avro.cause();
+        test:assertTrue(cause is error);
+        if cause is error {
+            test:assertTrue(cause.message().includes("Unrecognized token 'invalid'"));
+        }
+    }
+}
+
+@test:Config {
+    groups: ["errors", "schema"]
+}
+public isolated function testInvalidAvroSchemaStructure() returns error? {
+    string schema = string `
+        {
+            "type": "unsupported_type",
+            "name": "test"
+        }`;
+    Schema|Error avro = new (schema);
+    test:assertTrue(avro is Error);
+    if avro is Error {
+        test:assertEquals(avro.message(), "Avro schema generation error");
+        error? cause = avro.cause();
+        test:assertTrue(cause is error);
+        if cause is error {
+            test:assertTrue(cause.message().includes("Type not supported: unsupported_type"));
+        }
+    }
+}
