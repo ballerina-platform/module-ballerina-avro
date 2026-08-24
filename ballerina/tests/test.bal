@@ -404,7 +404,11 @@ public isolated function testInvalidSchemaInitialization() returns error? {
     test:assertTrue(avro is Error);
     if avro is Error {
         test:assertEquals(avro.message(), "Avro schema generation error");
-        test:assertTrue(avro.cause() is error);
+        error? cause = avro.cause();
+        test:assertTrue(cause is error);
+        if cause is error {
+            test:assertTrue(cause.message().includes("Unrecognized token 'invalid'"));
+        }
     }
 }
 
@@ -421,6 +425,10 @@ public isolated function testInvalidAvroSchemaStructure() returns error? {
     test:assertTrue(avro is Error);
     if avro is Error {
         test:assertEquals(avro.message(), "Avro schema generation error");
-        test:assertTrue(avro.cause() is error);
+        error? cause = avro.cause();
+        test:assertTrue(cause is error);
+        if cause is error {
+            test:assertTrue(cause.message().includes("Type not supported: unsupported_type"));
+        }
     }
 }
