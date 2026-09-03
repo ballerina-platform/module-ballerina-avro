@@ -7,9 +7,18 @@
 [![GitHub Last Commit](https://img.shields.io/github/last-commit/ballerina-platform/module-ballerina-avro.svg)](https://github.com/ballerina-platform/module-ballerina-avro/commits/main)
 [![Github issues](https://img.shields.io/github/issues/ballerina-platform/ballerina-standard-library/module/avro.svg?label=Open%20Issues)](https://github.com/ballerina-platform/ballerina-standard-library/labels/module%2Favro)
 
-Avro is an open-source data serialization system that enables efficient binary serialization and deserialization. It allows users to define schemas for structured data, providing better representation and fast serialization/deserialization. Avro's schema evolution capabilities ensure compatibility and flexibility in evolving data systems.
+## Overview
 
-The Ballerina Avro module provides the capability to efficiently serialize and deserialize data using Avro schemas.
+Avro is an open-source data serialization system for defining schemas and
+performing efficient binary serialization and deserialization, with schema
+evolution support for compatibility as data systems change. This module
+provides the capability to serialize and deserialize data using Avro schemas.
+
+## Key Features
+
+- Schema-based binary serialization and deserialization
+- Schema evolution support for compatibility across versions
+- `toAvro` and `fromAvro` conversion APIs
 
 ## Schema
 
@@ -130,7 +139,7 @@ Execute the commands below to build from the source.
 
 ## Contributing to Ballerina
 
-As an open source project, Ballerina welcomes contributions from the community.
+As an open-source project, Ballerina welcomes contributions from the community.
 
 For more information, go to the [contribution guidelines](https://github.com/ballerina-platform/ballerina-lang/blob/master/CONTRIBUTING.md).
 
