@@ -14,12 +14,6 @@ performing efficient binary serialization and deserialization, with schema
 evolution support for compatibility as data systems change. This module
 provides the capability to serialize and deserialize data using Avro schemas.
 
-## Key Features
-
-- Schema-based binary serialization and deserialization
-- Schema evolution support for compatibility across versions
-- `toAvro` and `fromAvro` conversion APIs
-
 ## Schema
 
 The `Schema` instance accepts an Avro schema in `string` format. If the provided schema is not valid according to Avro, an error is returned. The client can be used to serialize data into bytes using the defined schema and deserialize the bytes back to the correct data type based on the schema.
