@@ -6,7 +6,7 @@ Avro is an open-source data serialization system for defining schemas and perfor
 
 - Schema-based binary serialization and deserialization
 - Schema evolution support for compatibility across versions
-- `toAvro` and `fromAvro` conversion APIs
+- Convert Ballerina values to and from Avro-encoded binary data
 
 ## Schema
 
