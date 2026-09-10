@@ -2,7 +2,7 @@
 
 Avro is an open-source data serialization system for defining schemas and performing efficient binary serialization and deserialization, with schema evolution support for compatibility as data systems change. This module provides the capability to serialize and deserialize data using Avro schemas.
 
-## Key Features
+### Key Features
 
 - Schema-based binary serialization and deserialization
 - Schema evolution support for compatibility across versions
