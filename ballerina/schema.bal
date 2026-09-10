@@ -28,10 +28,10 @@ public class Schema {
     # + schema - The Avro schema definition as a string
     # + return - An `avro:Error` if the schema is not valid, otherwise nil
     public isolated function init(string schema) returns Error? {
-        self.generateSchema(schema);
+        check self.generateSchema(schema);
     }
 
-    isolated function generateSchema(string schema) = @java:Method {
+    isolated function generateSchema(string schema) returns Error? = @java:Method {
         'class: "io.ballerina.lib.avro.Avro"
     } external;
 
