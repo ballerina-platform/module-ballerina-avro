@@ -93,8 +93,18 @@ release {
     }
 }
 
-tasks.named('build') {
-    dependsOn('avro-native:build')
-    dependsOn('avro-ballerina:build')
-    dependsOn('avro-examples:build')
+if (tasks.names.contains('build')) {
+    tasks.named('build') {
+        dependsOn('avro-native:build')
+        dependsOn('avro-ballerina:build')
+        dependsOn('avro-examples:build')
+
+    }
+} else {
+    tasks.register('build') {
+        dependsOn('avro-native:build')
+        dependsOn('avro-ballerina:build')
+        dependsOn('avro-examples:build')
+
+    }
 }
