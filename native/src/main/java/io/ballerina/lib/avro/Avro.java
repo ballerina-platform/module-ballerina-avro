@@ -21,6 +21,7 @@ package io.ballerina.lib.avro;
 import io.ballerina.lib.avro.deserialize.DeserializeFactory;
 import io.ballerina.lib.avro.deserialize.Deserializer;
 import io.ballerina.lib.avro.deserialize.visitor.DeserializeVisitor;
+import io.ballerina.lib.avro.serialize.AvroSerializationException;
 import io.ballerina.lib.avro.serialize.MessageFactory;
 import io.ballerina.lib.avro.serialize.Serializer;
 import io.ballerina.lib.avro.serialize.visitor.SerializeVisitor;
@@ -40,6 +41,7 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Objects;
 
 import static io.ballerina.lib.avro.Utils.AVRO_SCHEMA;
@@ -74,7 +76,7 @@ public final class Avro {
             writer.write(avroData, encoder);
             encoder.flush();
             return ValueCreator.createArrayValue(outputStream.toByteArray());
-        } catch (Exception e) {
+        } catch (AvroSerializationException | IOException e) {
             return Utils.createError(SERIALIZATION_ERROR, e);
         }
     }

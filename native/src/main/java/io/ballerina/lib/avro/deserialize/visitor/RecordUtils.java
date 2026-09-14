@@ -19,6 +19,7 @@
 package io.ballerina.lib.avro.deserialize.visitor;
 
 import io.ballerina.lib.avro.deserialize.ArrayDeserializer;
+import io.ballerina.lib.avro.deserialize.AvroDeserializationException;
 import io.ballerina.lib.avro.deserialize.MapDeserializer;
 import io.ballerina.lib.avro.deserialize.PrimitiveDeserializer;
 import io.ballerina.lib.avro.deserialize.RecordDeserializer;
@@ -40,7 +41,7 @@ import static io.ballerina.runtime.api.utils.StringUtils.fromString;
 public class RecordUtils {
 
     public static void processMapField(BMap<BString, Object> avroRecord,
-                                 Schema.Field field, Object fieldData) throws Exception {
+                                 Schema.Field field, Object fieldData) throws AvroDeserializationException {
         Type mapType = extractMapType(avroRecord.getType());
         MapDeserializer mapDeserializer = new MapDeserializer(field.schema(), mapType);
         Object fieldValue = mapDeserializer.accept(new DeserializeVisitor(), fieldData);
@@ -48,7 +49,8 @@ public class RecordUtils {
     }
 
     public static void processArrayField(BMap<BString, Object> avroRecord,
-                                         Schema.Field field, Object fieldData, Type type) throws Exception {
+                                         Schema.Field field, Object fieldData, Type type)
+            throws AvroDeserializationException {
         ArrayDeserializer arrayDes = new ArrayDeserializer(type, field.schema());
         Object fieldValue = arrayDes.accept(new DeserializeVisitor(), (GenericData.Array<Object>) fieldData);
         avroRecord.put(fromString(field.name()), fieldValue);
@@ -61,7 +63,7 @@ public class RecordUtils {
     }
 
     public static void processRecordField(BMap<BString, Object> avroRecord,
-                                    Schema.Field field, Object fieldData) throws Exception {
+                                    Schema.Field field, Object fieldData) throws AvroDeserializationException {
         Type recType = extractRecordType((RecordType) avroRecord.getType());
         RecordDeserializer recordDes = new RecordDeserializer(recType, field.schema());
         Object fieldValue = recordDes.accept(new DeserializeVisitor(), fieldData);
@@ -69,14 +71,14 @@ public class RecordUtils {
     }
 
     public static void processStringField(BMap<BString, Object> avroRecord,
-                                    Schema.Field field, Object fieldData) throws Exception {
+                                    Schema.Field field, Object fieldData) throws AvroDeserializationException {
         PrimitiveDeserializer stringDes = new PrimitiveDeserializer(null, field.schema());
         Object fieldValue = stringDes.accept(new DeserializeVisitor(), fieldData);
         avroRecord.put(fromString(field.name()), fieldValue);
     }
 
     public static void processUnionField(Type type, BMap<BString, Object> avroRecord,
-                                   Schema.Field field, Object fieldData) throws Exception {
+                                   Schema.Field field, Object fieldData) throws AvroDeserializationException {
         visitUnionRecords(type, avroRecord, field, fieldData);
     }
 }

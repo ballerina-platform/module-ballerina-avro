@@ -19,6 +19,7 @@
 package io.ballerina.lib.avro.serialize.visitor;
 
 import io.ballerina.lib.avro.serialize.ArraySerializer;
+import io.ballerina.lib.avro.serialize.AvroSerializationException;
 import io.ballerina.lib.avro.serialize.EnumSerializer;
 import io.ballerina.lib.avro.serialize.FixedSerializer;
 import io.ballerina.lib.avro.serialize.PrimitiveSerializer;
@@ -30,9 +31,9 @@ import org.apache.avro.generic.GenericRecord;
 
 public interface ISerializeVisitor {
 
-    GenericRecord visit(RecordSerializer recordSerializer, BMap<?, ?> data) throws Exception;
+    GenericRecord visit(RecordSerializer recordSerializer, BMap<?, ?> data) throws AvroSerializationException;
     GenericData.Array<Object> visit(ArraySerializer arraySerializer, BArray data);
     Object visit(EnumSerializer enumSerializer, Object data);
     GenericData.Fixed visit(FixedSerializer fixedSerializer, Object data);
-    Object visit(PrimitiveSerializer primitiveSerializer, Object data) throws Exception;
+    Object visit(PrimitiveSerializer primitiveSerializer, Object data) throws AvroSerializationException;
 }

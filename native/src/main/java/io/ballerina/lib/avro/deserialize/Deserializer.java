@@ -46,6 +46,7 @@ public abstract class Deserializer {
         return this.type;
     }
 
-    public abstract Object accept(DeserializeVisitor visitor, Object data) throws Exception;
-    public abstract Object accept(DeserializeVisitor visitor, GenericData.Array<Object> data) throws Exception;
+    public abstract Object accept(DeserializeVisitor visitor, Object data) throws AvroDeserializationException;
+    public abstract Object accept(DeserializeVisitor visitor, GenericData.Array<Object> data)
+            throws AvroDeserializationException;
 }

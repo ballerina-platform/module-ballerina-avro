@@ -43,49 +43,4 @@
         <Class name="io.ballerina.lib.avro.serialize.Serializer" />
         <Bug pattern="EI_EXPOSE_REP2" />
     </Match>
-    <!-- gradle9-rollout: temporary suppression pending review: surfaced by the SpotBugs plugin version bump needed for Gradle 9 / Java 25 support (see PR body) — pre-existing code, not introduced by this PR -->
-    <Match>
-        <Class name="io.ballerina.lib.avro.deserialize.Deserializer"/>
-        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
-    </Match>
-    <Match>
-        <Class name="io.ballerina.lib.avro.deserialize.EnumDeserializer"/>
-        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
-    </Match>
-    <Match>
-        <Class name="io.ballerina.lib.avro.deserialize.FixedDeserializer"/>
-        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
-    </Match>
-    <Match>
-        <Class name="io.ballerina.lib.avro.deserialize.MapDeserializer"/>
-        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
-    </Match>
-    <Match>
-        <Class name="io.ballerina.lib.avro.deserialize.visitor.DeserializeVisitor"/>
-        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
-    </Match>
-    <Match>
-        <Class name="io.ballerina.lib.avro.serialize.Serializer"/>
-        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
-    </Match>
-    <Match>
-        <Class name="io.ballerina.lib.avro.serialize.visitor.ISerializeVisitor"/>
-        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
-    </Match>
-    <Match>
-        <Class name="io.ballerina.lib.avro.serialize.visitor.array.ArrayVisitor"/>
-        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION"/>
-    </Match>
-    <Match>
-        <Class name="io.ballerina.lib.avro.serialize.visitor.array.EnumArrayVisitor"/>
-        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION"/>
-    </Match>
-    <Match>
-        <Class name="io.ballerina.lib.avro.serialize.visitor.array.MapArrayVisitor"/>
-        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION"/>
-    </Match>
-    <Match>
-        <Class name="io.ballerina.lib.avro.serialize.visitor.array.RecordArrayVisitor"/>
-        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION"/>
-    </Match>
 </FindBugsFilter>
