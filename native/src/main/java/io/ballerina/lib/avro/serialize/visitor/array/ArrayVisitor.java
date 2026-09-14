@@ -19,6 +19,7 @@
 package io.ballerina.lib.avro.serialize.visitor.array;
 
 import io.ballerina.lib.avro.serialize.ArraySerializer;
+import io.ballerina.lib.avro.serialize.AvroSerializationRuntimeException;
 import io.ballerina.lib.avro.serialize.visitor.SerializeVisitor;
 import io.ballerina.runtime.api.values.BArray;
 import org.apache.avro.Schema;
@@ -36,7 +37,7 @@ public class ArrayVisitor implements IArrayVisitor {
                         array.add(new SerializeVisitor().visit(new ArraySerializer(schema.getElementType()),
                                 (BArray) value));
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        throw new AvroSerializationRuntimeException(e);
                     }
                 });
         return array;

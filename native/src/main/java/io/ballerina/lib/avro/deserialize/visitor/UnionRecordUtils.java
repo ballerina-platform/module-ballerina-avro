@@ -18,6 +18,7 @@
 
 package io.ballerina.lib.avro.deserialize.visitor;
 
+import io.ballerina.lib.avro.deserialize.AvroDeserializationException;
 import io.ballerina.lib.avro.deserialize.RecordDeserializer;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.Type;
@@ -38,7 +39,7 @@ import java.util.Map;
 public class UnionRecordUtils {
 
     public static void visitUnionRecords(Type type, BMap<BString, Object> ballerinaRecord,
-                                         Schema.Field field, Object fieldData) throws Exception {
+                                         Schema.Field field, Object fieldData) throws AvroDeserializationException {
         int size = ballerinaRecord.size();
         for (Schema schemaType : field.schema().getTypes()) {
             if (fieldData == null) {
@@ -98,7 +99,8 @@ public class UnionRecordUtils {
     }
 
     public static void handleRecordField(Type type, Schema.Field field, Object fieldData,
-                                         BMap<BString, Object> ballerinaRecord, Schema schemaType) throws Exception {
+                                         BMap<BString, Object> ballerinaRecord, Schema schemaType)
+                                                 throws AvroDeserializationException {
         if (fieldData instanceof GenericRecord) {
             RecordDeserializer recordDes = new RecordDeserializer(type, schemaType);
             Object fieldValue = recordDes.accept(new DeserializeVisitor(), (GenericRecord) fieldData);

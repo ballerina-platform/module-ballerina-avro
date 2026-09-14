@@ -35,7 +35,8 @@ public class FixedDeserializer extends Deserializer {
     }
 
     @Override
-    public Object accept(DeserializeVisitor visitor, GenericData.Array<Object> data) throws Exception {
+    public Object accept(DeserializeVisitor visitor, GenericData.Array<Object> data)
+            throws AvroDeserializationException {
         return visitor.visit(this, data);
     }
 }

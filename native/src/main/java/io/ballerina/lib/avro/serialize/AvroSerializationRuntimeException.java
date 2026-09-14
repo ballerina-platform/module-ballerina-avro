@@ -18,17 +18,13 @@
 
 package io.ballerina.lib.avro.serialize;
 
-import io.ballerina.lib.avro.serialize.visitor.SerializeVisitor;
-import org.apache.avro.Schema;
-
-public class UnionSerializer extends Serializer {
-
-    public UnionSerializer(Schema schema) {
-        super(schema);
-    }
-
-    @Override
-    public Object convert(SerializeVisitor serializeVisitor, Object data) throws AvroSerializationException {
-        return serializeVisitor.visit(this, data);
+/**
+ * Unchecked wrapper for an {@link AvroSerializationException} (or other serialization
+ * failure) raised from inside a functional-interface callback (e.g. a stream {@code forEach}
+ * lambda) that cannot itself declare a checked exception.
+ */
+public class AvroSerializationRuntimeException extends RuntimeException {
+    public AvroSerializationRuntimeException(Throwable cause) {
+        super(cause);
     }
 }

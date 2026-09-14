@@ -51,5 +51,5 @@ public abstract class Serializer {
         return this.type;
     }
 
-    public abstract Object convert(SerializeVisitor serializeVisitor, Object data) throws Exception;
+    public abstract Object convert(SerializeVisitor serializeVisitor, Object data) throws AvroSerializationException;
 }

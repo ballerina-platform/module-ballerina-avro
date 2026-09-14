@@ -23,9 +23,9 @@ import io.ballerina.lib.avro.serialize.visitor.SerializeVisitor;
 public class NullSerializer extends Serializer {
 
     @Override
-    public Object convert(SerializeVisitor serializeVisitor, Object data) throws Exception {
+    public Object convert(SerializeVisitor serializeVisitor, Object data) throws AvroSerializationException {
         if (data != null) {
-            throw new Exception("The value does not match with the null schema");
+            throw new AvroSerializationException("The value does not match with the null schema");
         }
         return null;
     }

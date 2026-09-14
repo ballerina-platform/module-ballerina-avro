@@ -18,6 +18,7 @@
 
 package io.ballerina.lib.avro.serialize.visitor.array;
 
+import io.ballerina.lib.avro.serialize.AvroSerializationRuntimeException;
 import io.ballerina.runtime.api.values.BArray;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
@@ -34,7 +35,7 @@ public class EnumArrayVisitor implements IArrayVisitor {
                     try {
                         array.add(new GenericData.EnumSymbol(schema.getElementType(), value));
                     } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        throw new AvroSerializationRuntimeException(e);
                     }
                 });
         return array;

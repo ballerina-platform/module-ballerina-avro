@@ -18,17 +18,11 @@
 
 package io.ballerina.lib.avro.serialize;
 
-import io.ballerina.lib.avro.serialize.visitor.SerializeVisitor;
-import org.apache.avro.Schema;
-
-public class UnionSerializer extends Serializer {
-
-    public UnionSerializer(Schema schema) {
-        super(schema);
-    }
-
-    @Override
-    public Object convert(SerializeVisitor serializeVisitor, Object data) throws AvroSerializationException {
-        return serializeVisitor.visit(this, data);
+/**
+ * Signals that Ballerina data could not be serialized into the target Avro type.
+ */
+public class AvroSerializationException extends Exception {
+    public AvroSerializationException(String message) {
+        super(message);
     }
 }

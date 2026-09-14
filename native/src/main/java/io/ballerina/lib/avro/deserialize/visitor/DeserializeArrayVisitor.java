@@ -20,6 +20,7 @@ package io.ballerina.lib.avro.deserialize.visitor;
 
 import io.ballerina.lib.avro.Utils;
 import io.ballerina.lib.avro.deserialize.ArrayDeserializer;
+import io.ballerina.lib.avro.deserialize.AvroDeserializationException;
 import io.ballerina.lib.avro.deserialize.Deserializer;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
@@ -31,7 +32,8 @@ import org.apache.avro.generic.GenericData;
 
 public class DeserializeArrayVisitor extends DeserializeVisitor {
 
-    public Object visit(ArrayDeserializer arrayDeserializer, GenericData.Array<Object> data) throws Exception {
+    public Object visit(ArrayDeserializer arrayDeserializer, GenericData.Array<Object> data)
+            throws AvroDeserializationException {
         Object[] objects = new Object[data.size()];
         boolean isReadOnly = arrayDeserializer.getType().getTag() == TypeTags.INTERSECTION_TAG;
         Type elementType = ((ArrayType) Utils.getMutableType(arrayDeserializer.getType())).getElementType();
@@ -51,7 +53,7 @@ public class DeserializeArrayVisitor extends DeserializeVisitor {
     }
 
     public Object visitNestedArray(ArrayDeserializer arrayDeserializer,
-                                   GenericData.Array<Object> data) throws Exception {
+                                   GenericData.Array<Object> data) throws AvroDeserializationException {
         Deserializer deserializer = createDeserializer(arrayDeserializer.getSchema(), arrayDeserializer.getType());
         return deserializer.accept(this, data);
     }

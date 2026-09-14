@@ -19,6 +19,7 @@
 package io.ballerina.lib.avro.serialize.visitor;
 
 import io.ballerina.lib.avro.serialize.ArraySerializer;
+import io.ballerina.lib.avro.serialize.AvroSerializationException;
 import io.ballerina.lib.avro.serialize.EnumSerializer;
 import io.ballerina.lib.avro.serialize.FixedSerializer;
 import io.ballerina.lib.avro.serialize.MapSerializer;
@@ -69,7 +70,7 @@ public class SerializeVisitor implements ISerializeVisitor {
     }
 
     @Override
-    public GenericRecord visit(RecordSerializer recordSerializer, BMap<?, ?> data) throws Exception {
+    public GenericRecord visit(RecordSerializer recordSerializer, BMap<?, ?> data) throws AvroSerializationException {
         GenericRecord genericRecord = new GenericData.Record(recordSerializer.getSchema());
         for (Schema.Field field : recordSerializer.getSchema().getFields()) {
             Object fieldData = data.get(StringUtils.fromString(field.name()));
@@ -78,7 +79,7 @@ public class SerializeVisitor implements ISerializeVisitor {
         return genericRecord;
     }
 
-    private Object serializeField(Schema schema, Object fieldData) throws Exception {
+    private Object serializeField(Schema schema, Object fieldData) throws AvroSerializationException {
         Schema.Type type = schema.getType();
         return switch (type) {
             case RECORD ->
@@ -97,7 +98,7 @@ public class SerializeVisitor implements ISerializeVisitor {
     }
 
     @Override
-    public Object visit(PrimitiveSerializer primitiveSerializer, Object data) throws Exception {
+    public Object visit(PrimitiveSerializer primitiveSerializer, Object data) throws AvroSerializationException {
         return switch (primitiveSerializer.getSchema().getType()) {
             case INT -> {
                 if (data instanceof Long longValue) {
@@ -128,7 +129,7 @@ public class SerializeVisitor implements ISerializeVisitor {
             case STRING -> data.toString();
             case NULL -> {
                 if (data != null) {
-                    throw new Exception("The value does not match with the null schema");
+                    throw new AvroSerializationException("The value does not match with the null schema");
                 }
                 yield null;
             }
@@ -136,7 +137,7 @@ public class SerializeVisitor implements ISerializeVisitor {
         };
     }
 
-    public Map<String, Object> visit(MapSerializer mapSerializer, BMap<?, ?> data) throws Exception {
+    public Map<String, Object> visit(MapSerializer mapSerializer, BMap<?, ?> data) throws AvroSerializationException {
         Map<String, Object> avroMap = new HashMap<>();
         Schema schema = mapSerializer.getSchema();
         if (schema.getType().equals(Schema.Type.UNION)) {
@@ -194,7 +195,7 @@ public class SerializeVisitor implements ISerializeVisitor {
         return tags;
     }
 
-    public Object visit(UnionSerializer unionSerializer, Object data) throws Exception {
+    public Object visit(UnionSerializer unionSerializer, Object data) throws AvroSerializationException {
         Schema fieldSchema = unionSerializer.getSchema();
         Type typeName = TypeUtils.getType(data);
         List<Schema> types = fieldSchema.getTypes();
@@ -205,6 +206,6 @@ public class SerializeVisitor implements ISerializeVisitor {
                 return Objects.requireNonNull(serializer).convert(this, data);
             }
         }
-        throw new Exception("Value does not match with the Avro union types");
+        throw new AvroSerializationException("Value does not match with the Avro union types");
     }
 }
