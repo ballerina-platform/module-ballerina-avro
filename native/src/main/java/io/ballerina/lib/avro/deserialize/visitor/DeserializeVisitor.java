@@ -28,14 +28,17 @@ import io.ballerina.lib.avro.deserialize.MapDeserializer;
 import io.ballerina.lib.avro.deserialize.PrimitiveDeserializer;
 import io.ballerina.lib.avro.deserialize.RecordDeserializer;
 import io.ballerina.lib.avro.deserialize.UnionDeserializer;
+import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.MapType;
+import io.ballerina.runtime.api.types.PredefinedTypes;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.ReferenceType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.TypeTags;
+import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.utils.ValueUtils;
@@ -92,7 +95,7 @@ public class DeserializeVisitor implements IDeserializeVisitor {
                 case MAP ->
                         processMapField(avroRecord, field, fieldData);
                 case ARRAY -> {
-                    Type fieldType = ((RecordType) avroRecord.getType()).getFields().get(field.name()).getFieldType();
+                    Type fieldType = resolveDeclaredFieldType(avroRecord.getType(), field.name());
                     processArrayField(avroRecord, field, fieldData, fieldType);
                 }
                 case BYTES ->
@@ -440,60 +443,97 @@ public class DeserializeVisitor implements IDeserializeVisitor {
         return fromString(data.toString());
     }
 
-    public static Type extractMapType(Type type) throws AvroDeserializationException {
-        Type mapType = type;
+    public static Type extractMapType(Type type, String fieldName) throws AvroDeserializationException {
+        Type anydataMapType = TypeCreator.createMapType(PredefinedTypes.TYPE_ANYDATA);
         if (type.getTag() != TypeTags.RECORD_TYPE_TAG) {
-            throw new AvroDeserializationException("Type is not a record type.");
+            return anydataMapType;
         }
-        for (Map.Entry<String, Field> entry : ((RecordType) type).getFields().entrySet()) {
-            Field fieldValue = entry.getValue();
-            if (fieldValue != null) {
-                Type fieldType = fieldValue.getFieldType();
-                switch (fieldType.getTag()) {
-                    case TypeTags.MAP_TAG ->
-                            mapType = fieldType;
-                    case TypeTags.INTERSECTION_TAG -> {
-                        Type referredType = getMutableType(fieldType);
-                        if (referredType.getTag() == TypeTags.MAP_TAG) {
-                            mapType = referredType;
-                        }
-                    }
-                    default -> {
-                        Type referType = TypeUtils.getReferredType(fieldType);
-                        if (referType.getTag() == TypeTags.MAP_TAG) {
-                            mapType = referType;
-                        }
-                    }
-                }
+        RecordType recordType = (RecordType) type;
+        Field fieldValue = recordType.getFields().get(fieldName);
+        if (fieldValue != null) {
+            Type resolvedType = resolveFieldType(fieldValue.getFieldType(), TypeTags.MAP_TAG);
+            if (resolvedType.getTag() != TypeTags.MAP_TAG) {
+                throw new AvroDeserializationException("Field '" + fieldName + "' in type " + type.getName()
+                        + " is not a map type.");
             }
+            return resolvedType;
         }
-        return mapType;
+        if (recordType.isSealed()) {
+            throw new AvroDeserializationException("Field '" + fieldName + "' not found in type " + type.getName());
+        }
+        return restFieldTypeOrDefault(recordType, fieldName, TypeTags.MAP_TAG, anydataMapType);
     }
 
-    public static RecordType extractRecordType(RecordType type) {
-        Map<String, Field> fieldsMap = type.getFields();
-        RecordType recType = type;
-        for (Map.Entry<String, Field> entry : fieldsMap.entrySet()) {
-            Field fieldValue = entry.getValue();
-            if (fieldValue != null) {
-                Type fieldType = fieldValue.getFieldType();
-                switch (fieldType.getTag()) {
-                    case TypeTags.RECORD_TYPE_TAG ->
-                            recType = (RecordType) fieldType;
-                    case TypeTags.INTERSECTION_TAG -> {
-                        if (getMutableType(fieldType).getTag() == TypeTags.RECORD_TYPE_TAG) {
-                            recType = (RecordType) getMutableType(fieldType);
-                        }
-                    }
-                    default -> {
-                        Type referredType = TypeUtils.getReferredType(fieldType);
-                        if (referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
-                            recType = (RecordType) referredType;
-                        }
-                    }
+    public static Type extractRecordType(Type type, String fieldName) throws AvroDeserializationException {
+        if (type.getTag() != TypeTags.RECORD_TYPE_TAG) {
+            return PredefinedTypes.TYPE_ANYDATA;
+        }
+        RecordType recordType = (RecordType) type;
+        Field fieldValue = recordType.getFields().get(fieldName);
+        if (fieldValue != null) {
+            Type resolvedType = resolveFieldType(fieldValue.getFieldType(), TypeTags.RECORD_TYPE_TAG);
+            if (resolvedType.getTag() != TypeTags.RECORD_TYPE_TAG) {
+                throw new AvroDeserializationException("Field '" + fieldName + "' in type " + type.getName()
+                        + " is not a record type.");
+            }
+            return resolvedType;
+        }
+        if (recordType.isSealed()) {
+            throw new AvroDeserializationException("Field '" + fieldName + "' not found in type " + type.getName());
+        }
+        return restFieldTypeOrDefault(recordType, fieldName, TypeTags.RECORD_TYPE_TAG, recordType);
+    }
+
+    private static Type resolveDeclaredFieldType(Type type, String fieldName) throws AvroDeserializationException {
+        if (type.getTag() != TypeTags.RECORD_TYPE_TAG) {
+            return PredefinedTypes.TYPE_ANYDATA_ARRAY;
+        }
+        RecordType recordType = (RecordType) type;
+        Field fieldValue = recordType.getFields().get(fieldName);
+        if (fieldValue != null) {
+            return fieldValue.getFieldType();
+        }
+        if (recordType.isSealed()) {
+            throw new AvroDeserializationException("Field '" + fieldName + "' not found in type " + type.getName());
+        }
+        return restFieldTypeOrDefault(recordType, fieldName, TypeTags.ARRAY_TAG, PredefinedTypes.TYPE_ANYDATA_ARRAY);
+    }
+
+    private static Type restFieldTypeOrDefault(RecordType recordType, String fieldName, int desiredTag,
+            Type permissiveDefault) throws AvroDeserializationException {
+        Type restFieldType = recordType.getRestFieldType();
+        if (restFieldType == null || restFieldType.getTag() == TypeTags.ANYDATA_TAG) {
+            return permissiveDefault;
+        }
+        Type resolvedRestType = resolveFieldType(restFieldType, desiredTag);
+        if (resolvedRestType.getTag() != desiredTag) {
+            throw new AvroDeserializationException("Field '" + fieldName + "' in type " + recordType.getName()
+                    + " is not compatible with its declared rest field type.");
+        }
+        return resolvedRestType;
+    }
+
+    private static Type resolveFieldType(Type fieldType, int desiredTag) {
+        if (fieldType.getTag() == desiredTag) {
+            return fieldType;
+        }
+        if (fieldType.getTag() == TypeTags.INTERSECTION_TAG) {
+            return resolveFieldType(getMutableType(fieldType), desiredTag);
+        }
+        if (fieldType.getTag() == TypeTags.UNION_TAG) {
+            for (Type memberType : ((UnionType) fieldType).getMemberTypes()) {
+                Type resolvedMember = resolveFieldType(memberType, desiredTag);
+                if (resolvedMember.getTag() == desiredTag) {
+                    return resolvedMember;
                 }
             }
+            return fieldType;
         }
-        return recType;
+        Type referredType = TypeUtils.getReferredType(fieldType);
+        if (referredType.getTag() == desiredTag || referredType.getTag() == TypeTags.UNION_TAG
+                || referredType.getTag() == TypeTags.INTERSECTION_TAG) {
+            return resolveFieldType(referredType, desiredTag);
+        }
+        return fieldType;
     }
 }

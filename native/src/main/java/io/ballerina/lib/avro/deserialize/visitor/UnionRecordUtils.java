@@ -102,7 +102,8 @@ public class UnionRecordUtils {
                                          BMap<BString, Object> ballerinaRecord, Schema schemaType)
                                                  throws AvroDeserializationException {
         if (fieldData instanceof GenericRecord) {
-            RecordDeserializer recordDes = new RecordDeserializer(type, schemaType);
+            Type recType = DeserializeVisitor.extractRecordType(ballerinaRecord.getType(), field.name());
+            RecordDeserializer recordDes = new RecordDeserializer(recType, schemaType);
             Object fieldValue = recordDes.accept(new DeserializeVisitor(), (GenericRecord) fieldData);
             ballerinaRecord.put(StringUtils.fromString(field.name()), fieldValue);
         }

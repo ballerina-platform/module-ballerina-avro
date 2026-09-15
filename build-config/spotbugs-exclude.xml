@@ -32,6 +32,11 @@
         <Bug pattern="BC_UNCONFIRMED_CAST" />
     </Match>
     <Match>
+        <Class name="io.ballerina.lib.avro.deserialize.visitor.DeserializeVisitor" />
+        <Method name = "extractRecordType" />
+        <Bug pattern="BC_UNCONFIRMED_CAST" />
+    </Match>
+    <Match>
         <Class name="io.ballerina.lib.avro.deserialize.Deserializer" />
         <Bug pattern="EI_EXPOSE_REP" />
     </Match>
