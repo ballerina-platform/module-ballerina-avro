@@ -18,6 +18,8 @@
 
 package io.ballerina.lib.avro.serialize.visitor.array;
 
+import io.ballerina.lib.avro.serialize.AvroSerializationException;
+import io.ballerina.lib.avro.serialize.AvroSerializationRuntimeException;
 import io.ballerina.lib.avro.serialize.RecordSerializer;
 import io.ballerina.lib.avro.serialize.visitor.SerializeVisitor;
 import io.ballerina.runtime.api.values.BArray;
@@ -37,8 +39,8 @@ public class RecordArrayVisitor implements IArrayVisitor {
                     try {
                         array.add(new SerializeVisitor()
                                 .visit(new RecordSerializer(schema.getElementType()), (BMap<?, ?>) record));
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
+                    } catch (AvroSerializationException e) {
+                        throw new AvroSerializationRuntimeException(e);
                     }
                 });
         return array;

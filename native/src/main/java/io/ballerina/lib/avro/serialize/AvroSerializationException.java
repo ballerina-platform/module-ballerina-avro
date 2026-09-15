@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com)
+ * Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com)
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,17 +18,11 @@
 
 package io.ballerina.lib.avro.serialize;
 
-import io.ballerina.lib.avro.serialize.visitor.SerializeVisitor;
-import org.apache.avro.Schema;
-
-public class UnionSerializer extends Serializer {
-
-    public UnionSerializer(Schema schema) {
-        super(schema);
-    }
-
-    @Override
-    public Object convert(SerializeVisitor serializeVisitor, Object data) throws AvroSerializationException {
-        return serializeVisitor.visit(this, data);
+/**
+ * Signals that Ballerina data could not be serialized into the target Avro type.
+ */
+public class AvroSerializationException extends Exception {
+    public AvroSerializationException(String message) {
+        super(message);
     }
 }

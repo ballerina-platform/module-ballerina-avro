@@ -32,11 +32,11 @@ public class MapDeserializer extends Deserializer {
     }
 
     @Override
-    public Object accept(DeserializeVisitor visitor, Object data) throws Exception {
+    public Object accept(DeserializeVisitor visitor, Object data) throws AvroDeserializationException {
         return visitor.visit(this, (Map<String, Object>) data);
     }
 
-    public Object accept(DeserializeVisitor visitor, GenericData.Array<Object> data) throws Exception {
+    public Object accept(DeserializeVisitor visitor, GenericData.Array<Object> data) {
         return null;
     }
 }

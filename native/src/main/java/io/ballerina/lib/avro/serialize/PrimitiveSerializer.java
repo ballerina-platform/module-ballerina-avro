@@ -28,7 +28,7 @@ public class PrimitiveSerializer extends Serializer {
     }
 
     @Override
-    public Object convert(SerializeVisitor serializeVisitor, Object data) throws Exception {
+    public Object convert(SerializeVisitor serializeVisitor, Object data) throws AvroSerializationException {
         return serializeVisitor.visit(this, data);
     }
 }
