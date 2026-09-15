@@ -20,7 +20,6 @@ import ballerina/test;
 // is only known at runtime - zero declared fields, on purpose.
 public type OpenPayload record {};
 
-// https://github.com/ballerina-platform/ballerina-library/issues/9164 (regression check)
 @test:Config {
     groups: ["record", "union"]
 }
@@ -69,10 +68,8 @@ public isolated function testNestedRecordDecodedIntoClosedParentTypeStillWorks()
     return verifyOperation(ClosedOuter, event, schema);
 }
 
-// The connector's actual CDC-shaped repro: an array nested inside a
-// sub-record, decoded into an open parent type - combines both the
-// 006a710 fix (array nested in an optional sub-record) and this fix (open
-// parent type).
+// A CDC-shaped repro: an array nested inside a sub-record, decoded into an
+// open parent type.
 public type ArrayHeaderForOpenTarget record {
     string[] changedFields;
 };

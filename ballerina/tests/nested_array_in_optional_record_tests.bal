@@ -24,7 +24,6 @@ public type OptionalNestedArrayEvent record {
     ArrayHeader? header;
 };
 
-// https://github.com/ballerina-platform/ballerina-library/issues/9164
 @test:Config {
     groups: ["record", "array", "union"]
 }
@@ -54,7 +53,6 @@ public type MultipleRecordFieldsEvent record {
     NoteRecord other;
 };
 
-// https://github.com/ballerina-platform/ballerina-library/issues/9164
 @test:Config {
     groups: ["record", "array"]
 }
@@ -81,9 +79,6 @@ public isolated function testArrayFieldNestedInSubRecordWithSiblingRecordField()
     return verifyOperation(MultipleRecordFieldsEvent, event, schema);
 }
 
-// Flagged by CodeRabbit on PR #71: handleRecordField's cast to RecordType
-// assumed the container built by DeserializeVisitor#createAvroRecord is always
-// RecordType-backed, but for an `anydata` target it is map-backed instead.
 @test:Config {
     groups: ["record", "union"]
 }

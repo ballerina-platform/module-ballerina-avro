@@ -458,7 +458,12 @@ public class DeserializeVisitor implements IDeserializeVisitor {
             }
             throw new AvroDeserializationException("Field '" + fieldName + "' not found in type " + type.getName());
         }
-        return resolveFieldType(fieldValue.getFieldType(), TypeTags.MAP_TAG);
+        Type resolvedType = resolveFieldType(fieldValue.getFieldType(), TypeTags.MAP_TAG);
+        if (resolvedType.getTag() != TypeTags.MAP_TAG) {
+            throw new AvroDeserializationException("Field '" + fieldName + "' in type " + type.getName()
+                    + " is not a map type.");
+        }
+        return resolvedType;
     }
 
     public static RecordType extractRecordType(RecordType type, String fieldName) throws AvroDeserializationException {
@@ -471,16 +476,14 @@ public class DeserializeVisitor implements IDeserializeVisitor {
             }
             throw new AvroDeserializationException("Field '" + fieldName + "' not found in type " + type.getName());
         }
-        return (RecordType) resolveFieldType(fieldValue.getFieldType(), TypeTags.RECORD_TYPE_TAG);
+        Type resolvedType = resolveFieldType(fieldValue.getFieldType(), TypeTags.RECORD_TYPE_TAG);
+        if (resolvedType.getTag() != TypeTags.RECORD_TYPE_TAG) {
+            throw new AvroDeserializationException("Field '" + fieldName + "' in type " + type.getName()
+                    + " is not a record type.");
+        }
+        return (RecordType) resolvedType;
     }
 
-    /**
-     * Resolves the Ballerina type of an ARRAY-typed Avro field directly (the array case is handled
-     * inline in {@link #visit(RecordDeserializer, GenericRecord)} rather than via extractRecordType/
-     * extractMapType, since an array field's own type - not a record/map wrapper - is what's needed).
-     * Falls back to an open {@code anydata[]} for an open/dynamic parent record with no declared
-     * field, matching the permissive-decode behavior of extractRecordType/extractMapType above.
-     */
     private static Type resolveDeclaredFieldType(RecordType type, String fieldName)
             throws AvroDeserializationException {
         Field fieldValue = type.getFields().get(fieldName);
@@ -493,12 +496,6 @@ public class DeserializeVisitor implements IDeserializeVisitor {
         return fieldValue.getFieldType();
     }
 
-    /**
-     * Resolves {@code fieldType} down to the concrete type carrying {@code desiredTag}, unwrapping
-     * readonly-intersections, type references, and (recursively) the non-null member of an optional
-     * ({@code T?}) union - which is how a nested record/map field that is itself nullable in the
-     * Avro schema (e.g. {@code ["null", {record...}]}) is represented at the Ballerina type level.
-     */
     private static Type resolveFieldType(Type fieldType, int desiredTag) {
         if (fieldType.getTag() == desiredTag) {
             return fieldType;
