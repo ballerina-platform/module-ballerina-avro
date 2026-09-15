@@ -36,6 +36,7 @@ import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.ReferenceType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.types.TypeTags;
+import io.ballerina.runtime.api.types.UnionType;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.utils.TypeUtils;
 import io.ballerina.runtime.api.utils.ValueUtils;
@@ -440,60 +441,52 @@ public class DeserializeVisitor implements IDeserializeVisitor {
         return fromString(data.toString());
     }
 
-    public static Type extractMapType(Type type) throws AvroDeserializationException {
-        Type mapType = type;
+    public static Type extractMapType(Type type, String fieldName) throws AvroDeserializationException {
         if (type.getTag() != TypeTags.RECORD_TYPE_TAG) {
             throw new AvroDeserializationException("Type is not a record type.");
         }
-        for (Map.Entry<String, Field> entry : ((RecordType) type).getFields().entrySet()) {
-            Field fieldValue = entry.getValue();
-            if (fieldValue != null) {
-                Type fieldType = fieldValue.getFieldType();
-                switch (fieldType.getTag()) {
-                    case TypeTags.MAP_TAG ->
-                            mapType = fieldType;
-                    case TypeTags.INTERSECTION_TAG -> {
-                        Type referredType = getMutableType(fieldType);
-                        if (referredType.getTag() == TypeTags.MAP_TAG) {
-                            mapType = referredType;
-                        }
-                    }
-                    default -> {
-                        Type referType = TypeUtils.getReferredType(fieldType);
-                        if (referType.getTag() == TypeTags.MAP_TAG) {
-                            mapType = referType;
-                        }
-                    }
-                }
-            }
+        Field fieldValue = ((RecordType) type).getFields().get(fieldName);
+        if (fieldValue == null) {
+            throw new AvroDeserializationException("Field '" + fieldName + "' not found in type " + type.getName());
         }
-        return mapType;
+        return resolveFieldType(fieldValue.getFieldType(), TypeTags.MAP_TAG);
     }
 
-    public static RecordType extractRecordType(RecordType type) {
-        Map<String, Field> fieldsMap = type.getFields();
-        RecordType recType = type;
-        for (Map.Entry<String, Field> entry : fieldsMap.entrySet()) {
-            Field fieldValue = entry.getValue();
-            if (fieldValue != null) {
-                Type fieldType = fieldValue.getFieldType();
-                switch (fieldType.getTag()) {
-                    case TypeTags.RECORD_TYPE_TAG ->
-                            recType = (RecordType) fieldType;
-                    case TypeTags.INTERSECTION_TAG -> {
-                        if (getMutableType(fieldType).getTag() == TypeTags.RECORD_TYPE_TAG) {
-                            recType = (RecordType) getMutableType(fieldType);
-                        }
-                    }
-                    default -> {
-                        Type referredType = TypeUtils.getReferredType(fieldType);
-                        if (referredType.getTag() == TypeTags.RECORD_TYPE_TAG) {
-                            recType = (RecordType) referredType;
-                        }
-                    }
+    public static RecordType extractRecordType(RecordType type, String fieldName) throws AvroDeserializationException {
+        Field fieldValue = type.getFields().get(fieldName);
+        if (fieldValue == null) {
+            throw new AvroDeserializationException("Field '" + fieldName + "' not found in type " + type.getName());
+        }
+        return (RecordType) resolveFieldType(fieldValue.getFieldType(), TypeTags.RECORD_TYPE_TAG);
+    }
+
+    /**
+     * Resolves {@code fieldType} down to the concrete type carrying {@code desiredTag}, unwrapping
+     * readonly-intersections, type references, and (recursively) the non-null member of an optional
+     * ({@code T?}) union - which is how a nested record/map field that is itself nullable in the
+     * Avro schema (e.g. {@code ["null", {record...}]}) is represented at the Ballerina type level.
+     */
+    private static Type resolveFieldType(Type fieldType, int desiredTag) {
+        if (fieldType.getTag() == desiredTag) {
+            return fieldType;
+        }
+        if (fieldType.getTag() == TypeTags.INTERSECTION_TAG) {
+            return resolveFieldType(getMutableType(fieldType), desiredTag);
+        }
+        if (fieldType.getTag() == TypeTags.UNION_TAG) {
+            for (Type memberType : ((UnionType) fieldType).getMemberTypes()) {
+                Type resolvedMember = resolveFieldType(memberType, desiredTag);
+                if (resolvedMember.getTag() == desiredTag) {
+                    return resolvedMember;
                 }
             }
+            return fieldType;
         }
-        return recType;
+        Type referredType = TypeUtils.getReferredType(fieldType);
+        if (referredType.getTag() == desiredTag || referredType.getTag() == TypeTags.UNION_TAG
+                || referredType.getTag() == TypeTags.INTERSECTION_TAG) {
+            return resolveFieldType(referredType, desiredTag);
+        }
+        return fieldType;
     }
 }

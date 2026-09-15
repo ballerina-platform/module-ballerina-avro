@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 - [[#9112] Update Keywords and Reformat README for Connector Store Discoverability](https://github.com/ballerina-platform/ballerina-library/issues/9112)
 
+### Fixed
+- [[#9164] Fix `fromAvro` NPE for an array field nested in an optional sub-record](https://github.com/ballerina-platform/ballerina-library/issues/9164)
+
 ## [1.2.2] - 2026-07-24
 
 ### Fixed
