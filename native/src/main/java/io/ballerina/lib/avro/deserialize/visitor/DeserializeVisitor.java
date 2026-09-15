@@ -95,7 +95,7 @@ public class DeserializeVisitor implements IDeserializeVisitor {
                 case MAP ->
                         processMapField(avroRecord, field, fieldData);
                 case ARRAY -> {
-                    Type fieldType = resolveDeclaredFieldType((RecordType) avroRecord.getType(), field.name());
+                    Type fieldType = resolveDeclaredFieldType(avroRecord.getType(), field.name());
                     processArrayField(avroRecord, field, fieldData, fieldType);
                 }
                 case BYTES ->
@@ -444,56 +444,73 @@ public class DeserializeVisitor implements IDeserializeVisitor {
     }
 
     public static Type extractMapType(Type type, String fieldName) throws AvroDeserializationException {
+        Type anydataMapType = TypeCreator.createMapType(PredefinedTypes.TYPE_ANYDATA);
         if (type.getTag() != TypeTags.RECORD_TYPE_TAG) {
-            throw new AvroDeserializationException("Type is not a record type.");
+            return anydataMapType;
         }
         RecordType recordType = (RecordType) type;
         Field fieldValue = recordType.getFields().get(fieldName);
-        if (fieldValue == null) {
-            if (!recordType.isSealed()) {
-                // Open/dynamic parent (e.g. `record {}`): there was never going to be a declared
-                // field to look up, so decode this map permissively instead of treating the absent
-                // declaration as an error.
-                return TypeCreator.createMapType(PredefinedTypes.TYPE_ANYDATA);
+        if (fieldValue != null) {
+            Type resolvedType = resolveFieldType(fieldValue.getFieldType(), TypeTags.MAP_TAG);
+            if (resolvedType.getTag() != TypeTags.MAP_TAG) {
+                throw new AvroDeserializationException("Field '" + fieldName + "' in type " + type.getName()
+                        + " is not a map type.");
             }
+            return resolvedType;
+        }
+        if (recordType.isSealed()) {
             throw new AvroDeserializationException("Field '" + fieldName + "' not found in type " + type.getName());
         }
-        Type resolvedType = resolveFieldType(fieldValue.getFieldType(), TypeTags.MAP_TAG);
-        if (resolvedType.getTag() != TypeTags.MAP_TAG) {
-            throw new AvroDeserializationException("Field '" + fieldName + "' in type " + type.getName()
-                    + " is not a map type.");
-        }
-        return resolvedType;
+        return restFieldTypeOrDefault(recordType, fieldName, TypeTags.MAP_TAG, anydataMapType);
     }
 
-    public static RecordType extractRecordType(RecordType type, String fieldName) throws AvroDeserializationException {
-        Field fieldValue = type.getFields().get(fieldName);
-        if (fieldValue == null) {
-            if (!type.isSealed()) {
-                // Same reasoning as extractMapType above: an open parent record recurses into the
-                // nested record using its own (open) type, so any further nesting stays permissive too.
-                return type;
+    public static Type extractRecordType(Type type, String fieldName) throws AvroDeserializationException {
+        if (type.getTag() != TypeTags.RECORD_TYPE_TAG) {
+            return PredefinedTypes.TYPE_ANYDATA;
+        }
+        RecordType recordType = (RecordType) type;
+        Field fieldValue = recordType.getFields().get(fieldName);
+        if (fieldValue != null) {
+            Type resolvedType = resolveFieldType(fieldValue.getFieldType(), TypeTags.RECORD_TYPE_TAG);
+            if (resolvedType.getTag() != TypeTags.RECORD_TYPE_TAG) {
+                throw new AvroDeserializationException("Field '" + fieldName + "' in type " + type.getName()
+                        + " is not a record type.");
             }
+            return resolvedType;
+        }
+        if (recordType.isSealed()) {
             throw new AvroDeserializationException("Field '" + fieldName + "' not found in type " + type.getName());
         }
-        Type resolvedType = resolveFieldType(fieldValue.getFieldType(), TypeTags.RECORD_TYPE_TAG);
-        if (resolvedType.getTag() != TypeTags.RECORD_TYPE_TAG) {
-            throw new AvroDeserializationException("Field '" + fieldName + "' in type " + type.getName()
-                    + " is not a record type.");
-        }
-        return (RecordType) resolvedType;
+        return restFieldTypeOrDefault(recordType, fieldName, TypeTags.RECORD_TYPE_TAG, recordType);
     }
 
-    private static Type resolveDeclaredFieldType(RecordType type, String fieldName)
-            throws AvroDeserializationException {
-        Field fieldValue = type.getFields().get(fieldName);
-        if (fieldValue == null) {
-            if (!type.isSealed()) {
-                return PredefinedTypes.TYPE_ANYDATA_ARRAY;
-            }
+    private static Type resolveDeclaredFieldType(Type type, String fieldName) throws AvroDeserializationException {
+        if (type.getTag() != TypeTags.RECORD_TYPE_TAG) {
+            return PredefinedTypes.TYPE_ANYDATA_ARRAY;
+        }
+        RecordType recordType = (RecordType) type;
+        Field fieldValue = recordType.getFields().get(fieldName);
+        if (fieldValue != null) {
+            return fieldValue.getFieldType();
+        }
+        if (recordType.isSealed()) {
             throw new AvroDeserializationException("Field '" + fieldName + "' not found in type " + type.getName());
         }
-        return fieldValue.getFieldType();
+        return restFieldTypeOrDefault(recordType, fieldName, TypeTags.ARRAY_TAG, PredefinedTypes.TYPE_ANYDATA_ARRAY);
+    }
+
+    private static Type restFieldTypeOrDefault(RecordType recordType, String fieldName, int desiredTag,
+            Type permissiveDefault) throws AvroDeserializationException {
+        Type restFieldType = recordType.getRestFieldType();
+        if (restFieldType == null || restFieldType.getTag() == TypeTags.ANYDATA_TAG) {
+            return permissiveDefault;
+        }
+        Type resolvedRestType = resolveFieldType(restFieldType, desiredTag);
+        if (resolvedRestType.getTag() != desiredTag) {
+            throw new AvroDeserializationException("Field '" + fieldName + "' in type " + recordType.getName()
+                    + " is not compatible with its declared rest field type.");
+        }
+        return resolvedRestType;
     }
 
     private static Type resolveFieldType(Type fieldType, int desiredTag) {

@@ -24,7 +24,6 @@ import io.ballerina.lib.avro.deserialize.MapDeserializer;
 import io.ballerina.lib.avro.deserialize.PrimitiveDeserializer;
 import io.ballerina.lib.avro.deserialize.RecordDeserializer;
 import io.ballerina.runtime.api.creators.ValueCreator;
-import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
 import io.ballerina.runtime.api.values.BMap;
 import io.ballerina.runtime.api.values.BString;
@@ -64,7 +63,7 @@ public class RecordUtils {
 
     public static void processRecordField(BMap<BString, Object> avroRecord,
                                     Schema.Field field, Object fieldData) throws AvroDeserializationException {
-        Type recType = extractRecordType((RecordType) avroRecord.getType(), field.name());
+        Type recType = extractRecordType(avroRecord.getType(), field.name());
         RecordDeserializer recordDes = new RecordDeserializer(recType, field.schema());
         Object fieldValue = recordDes.accept(new DeserializeVisitor(), fieldData);
         avroRecord.put(fromString(field.name()), fieldValue);
