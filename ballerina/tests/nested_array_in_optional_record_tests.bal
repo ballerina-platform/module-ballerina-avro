@@ -80,3 +80,27 @@ public isolated function testArrayFieldNestedInSubRecordWithSiblingRecordField()
 
     return verifyOperation(MultipleRecordFieldsEvent, event, schema);
 }
+
+// Flagged by CodeRabbit on PR #71: handleRecordField's cast to RecordType
+// assumed the container built by DeserializeVisitor#createAvroRecord is always
+// RecordType-backed, but for an `anydata` target it is map-backed instead.
+@test:Config {
+    groups: ["record", "union"]
+}
+public isolated function testAnydataTargetWithUnionWrappedNestedRecord() returns error? {
+    string schema = string `
+        {"type":"record","name":"AnydataUnionOuter","fields":[
+          {"name":"header","type":["null",{"type":"record","name":"AnydataUnionHeader","fields":[
+            {"name":"entityName","type":"string"}
+          ]}]}
+        ]}`;
+
+    ClosedOuter typedEvent = {
+        header: {entityName: "Account"}
+    };
+
+    Schema avro = check new (schema);
+    byte[] serializedValue = check avro.toAvro(typedEvent);
+    anydata decoded = check avro.fromAvro(serializedValue);
+    test:assertEquals(decoded.cloneWithType(ClosedOuter), typedEvent);
+}

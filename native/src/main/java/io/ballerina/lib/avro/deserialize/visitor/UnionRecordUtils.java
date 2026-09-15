@@ -23,6 +23,7 @@ import io.ballerina.lib.avro.deserialize.RecordDeserializer;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.Type;
+import io.ballerina.runtime.api.types.TypeTags;
 import io.ballerina.runtime.api.utils.StringUtils;
 import io.ballerina.runtime.api.values.BArray;
 import io.ballerina.runtime.api.values.BMap;
@@ -103,8 +104,13 @@ public class UnionRecordUtils {
                                          BMap<BString, Object> ballerinaRecord, Schema schemaType)
                                                  throws AvroDeserializationException {
         if (fieldData instanceof GenericRecord) {
-            Type recType = DeserializeVisitor.extractRecordType((RecordType) ballerinaRecord.getType(),
-                    field.name());
+            // For an `anydata` container, ballerinaRecord is map-backed (see
+            // DeserializeVisitor#createAvroRecord), not RecordType-backed - fall back to the
+            // caller-supplied type (already anydata-permissive) rather than casting to RecordType.
+            Type containerType = ballerinaRecord.getType();
+            Type recType = containerType.getTag() == TypeTags.RECORD_TYPE_TAG
+                    ? DeserializeVisitor.extractRecordType((RecordType) containerType, field.name())
+                    : type;
             RecordDeserializer recordDes = new RecordDeserializer(recType, schemaType);
             Object fieldValue = recordDes.accept(new DeserializeVisitor(), (GenericRecord) fieldData);
             ballerinaRecord.put(StringUtils.fromString(field.name()), fieldValue);
