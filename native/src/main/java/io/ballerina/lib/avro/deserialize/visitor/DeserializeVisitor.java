@@ -28,10 +28,12 @@ import io.ballerina.lib.avro.deserialize.MapDeserializer;
 import io.ballerina.lib.avro.deserialize.PrimitiveDeserializer;
 import io.ballerina.lib.avro.deserialize.RecordDeserializer;
 import io.ballerina.lib.avro.deserialize.UnionDeserializer;
+import io.ballerina.runtime.api.creators.TypeCreator;
 import io.ballerina.runtime.api.creators.ValueCreator;
 import io.ballerina.runtime.api.types.ArrayType;
 import io.ballerina.runtime.api.types.Field;
 import io.ballerina.runtime.api.types.MapType;
+import io.ballerina.runtime.api.types.PredefinedTypes;
 import io.ballerina.runtime.api.types.RecordType;
 import io.ballerina.runtime.api.types.ReferenceType;
 import io.ballerina.runtime.api.types.Type;
@@ -93,7 +95,7 @@ public class DeserializeVisitor implements IDeserializeVisitor {
                 case MAP ->
                         processMapField(avroRecord, field, fieldData);
                 case ARRAY -> {
-                    Type fieldType = ((RecordType) avroRecord.getType()).getFields().get(field.name()).getFieldType();
+                    Type fieldType = resolveDeclaredFieldType((RecordType) avroRecord.getType(), field.name());
                     processArrayField(avroRecord, field, fieldData, fieldType);
                 }
                 case BYTES ->
@@ -445,8 +447,15 @@ public class DeserializeVisitor implements IDeserializeVisitor {
         if (type.getTag() != TypeTags.RECORD_TYPE_TAG) {
             throw new AvroDeserializationException("Type is not a record type.");
         }
-        Field fieldValue = ((RecordType) type).getFields().get(fieldName);
+        RecordType recordType = (RecordType) type;
+        Field fieldValue = recordType.getFields().get(fieldName);
         if (fieldValue == null) {
+            if (!recordType.isSealed()) {
+                // Open/dynamic parent (e.g. `record {}`): there was never going to be a declared
+                // field to look up, so decode this map permissively instead of treating the absent
+                // declaration as an error.
+                return TypeCreator.createMapType(PredefinedTypes.TYPE_ANYDATA);
+            }
             throw new AvroDeserializationException("Field '" + fieldName + "' not found in type " + type.getName());
         }
         return resolveFieldType(fieldValue.getFieldType(), TypeTags.MAP_TAG);
@@ -455,9 +464,33 @@ public class DeserializeVisitor implements IDeserializeVisitor {
     public static RecordType extractRecordType(RecordType type, String fieldName) throws AvroDeserializationException {
         Field fieldValue = type.getFields().get(fieldName);
         if (fieldValue == null) {
+            if (!type.isSealed()) {
+                // Same reasoning as extractMapType above: an open parent record recurses into the
+                // nested record using its own (open) type, so any further nesting stays permissive too.
+                return type;
+            }
             throw new AvroDeserializationException("Field '" + fieldName + "' not found in type " + type.getName());
         }
         return (RecordType) resolveFieldType(fieldValue.getFieldType(), TypeTags.RECORD_TYPE_TAG);
+    }
+
+    /**
+     * Resolves the Ballerina type of an ARRAY-typed Avro field directly (the array case is handled
+     * inline in {@link #visit(RecordDeserializer, GenericRecord)} rather than via extractRecordType/
+     * extractMapType, since an array field's own type - not a record/map wrapper - is what's needed).
+     * Falls back to an open {@code anydata[]} for an open/dynamic parent record with no declared
+     * field, matching the permissive-decode behavior of extractRecordType/extractMapType above.
+     */
+    private static Type resolveDeclaredFieldType(RecordType type, String fieldName)
+            throws AvroDeserializationException {
+        Field fieldValue = type.getFields().get(fieldName);
+        if (fieldValue == null) {
+            if (!type.isSealed()) {
+                return PredefinedTypes.TYPE_ANYDATA_ARRAY;
+            }
+            throw new AvroDeserializationException("Field '" + fieldName + "' not found in type " + type.getName());
+        }
+        return fieldValue.getFieldType();
     }
 
     /**
