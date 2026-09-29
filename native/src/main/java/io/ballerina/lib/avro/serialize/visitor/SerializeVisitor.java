@@ -79,6 +79,8 @@ public class SerializeVisitor implements ISerializeVisitor {
         return genericRecord;
     }
 
+
+
     private Object serializeField(Schema schema, Object fieldData) throws AvroSerializationException {
         Schema.Type type = schema.getType();
         return switch (type) {
@@ -102,31 +104,58 @@ public class SerializeVisitor implements ISerializeVisitor {
         return switch (primitiveSerializer.getSchema().getType()) {
             case INT -> {
                 if (data instanceof Long longValue) {
+                    if (longValue < Integer.MIN_VALUE || longValue > Integer.MAX_VALUE) {
+                        throw new AvroSerializationException("Value is out of range for Avro int");
+                    }
                     yield longValue.intValue();
                 }
-                yield data;
+                throw new AvroSerializationException("Value does not match with the Avro int schema");
+            }
+            case LONG -> {
+                if (data instanceof Long) {
+                    yield data;
+                }
+                throw new AvroSerializationException("Value does not match with the Avro long schema");
             }
             case FLOAT -> {
                 if (data instanceof Double doubleValue) {
                     yield doubleValue.floatValue();
+                } else if (data instanceof BDecimal decimalValue) {
+                    yield decimalValue.floatValue();
                 }
-                yield data;
+                throw new AvroSerializationException("Value does not match with the Avro float schema");
             }
             case DOUBLE -> {
                 if (data instanceof Long longValue) {
                     yield longValue.doubleValue();
                 } else if (data instanceof BDecimal decimalValue) {
-                    yield decimalValue.floatValue();
+                    yield decimalValue.value().doubleValue();
+                } else if (data instanceof Double) {
+                    yield data;
                 }
-                yield data;
+                throw new AvroSerializationException("Value does not match with the Avro double schema");
+            }
+            case BOOLEAN -> {
+                if (data instanceof Boolean) {
+                    yield data;
+                }
+                throw new AvroSerializationException("Value does not match with the Avro boolean schema");
             }
             case BYTES -> {
-                ByteBuffer byteBuffer = ByteBuffer.allocate(((BArray) data).getByteArray().length);
-                byteBuffer.put(((BArray) data).getByteArray());
-                byteBuffer.position(0);
-                yield byteBuffer;
+                if (data instanceof BArray bArray) {                    
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(((BArray) data).getByteArray().length);
+                    byteBuffer.put(bArray.getByteArray());
+                    byteBuffer.position(0);
+                    yield byteBuffer;
+                }
+                throw new AvroSerializationException("Value does not match with the Avro bytes schema");
             }
-            case STRING -> data.toString();
+            case STRING -> {
+                if (TypeUtils.getType(data).getTag() == TypeTags.STRING_TAG) {
+                    yield data.toString();
+                }
+                throw new AvroSerializationException("Value does not match with the Avro string schema");
+            }
             case NULL -> {
                 if (data != null) {
                     throw new AvroSerializationException("The value does not match with the null schema");
