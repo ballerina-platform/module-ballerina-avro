@@ -215,6 +215,11 @@ public isolated function testIntOutOfRange() returns error? {
     test:assertTrue(serializedValue is error);
     if serializedValue is error {
         test:assertEquals(serializedValue.message(), "Avro serialization error");
+        error? cause = serializedValue.cause();
+        test:assertTrue(cause is error);
+        if cause is error {
+            test:assertEquals(cause.message(), "io.ballerina.lib.avro.serialize.AvroSerializationException: Value is out of range for Avro int");
+        }
     }
 }
 
@@ -233,6 +238,11 @@ public isolated function testIntWithInvalidTypeString() returns error? {
     test:assertTrue(serializedValue is error);
     if serializedValue is error {
         test:assertEquals(serializedValue.message(), "Avro serialization error");
+        error? cause = serializedValue.cause();
+        test:assertTrue(cause is error);
+        if cause is error {
+            test:assertEquals(cause.message(), "io.ballerina.lib.avro.serialize.AvroSerializationException: Value does not match with the Avro int schema");
+        }
     }
 }
 
@@ -243,7 +253,7 @@ public isolated function testLongWithInvalidType() returns error? {
     string schema = string `
         {
             "type": "long",
-            "name" : "longValue", 
+            "name" : "longValue",
             "namespace": "data"
         }`;
     Schema avro = check new (schema);
@@ -251,5 +261,10 @@ public isolated function testLongWithInvalidType() returns error? {
     test:assertTrue(serializedValue is error);
     if serializedValue is error {
         test:assertEquals(serializedValue.message(), "Avro serialization error");
+        error? cause = serializedValue.cause();
+        test:assertTrue(cause is error);
+        if cause is error {
+            test:assertEquals(cause.message(), "io.ballerina.lib.avro.serialize.AvroSerializationException: Value does not match with the Avro long schema");
+        }
     }
 }
