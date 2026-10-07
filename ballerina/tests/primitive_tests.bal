@@ -198,3 +198,73 @@ public isolated function testByteValue() returns error? {
     data.push(value);
     return verifyOperation(ByteArray, data, schema);
 }
+
+@test:Config {
+   groups: ["primitive", "int", "negative"]
+}
+public isolated function testIntOutOfRange() returns error? {
+    string schema = string `
+        {
+            "type": "int",
+            "name" : "intValue", 
+            "namespace": "data"
+        }`;
+    Schema avro = check new (schema);
+    int outOfRangeValue = 2147483648;
+    byte[]|error serializedValue = avro.toAvro(outOfRangeValue);
+    test:assertTrue(serializedValue is error);
+    if serializedValue is error {
+        test:assertEquals(serializedValue.message(), "Avro serialization error");
+        error? cause = serializedValue.cause();
+        test:assertTrue(cause is error);
+        if cause is error {
+            test:assertEquals(cause.message(), "io.ballerina.lib.avro.serialize.AvroSerializationException: Value is out of range for Avro int");
+        }
+    }
+}
+
+@test:Config {
+   groups: ["primitive", "int", "negative"]
+}
+public isolated function testIntWithInvalidTypeString() returns error? {
+    string schema = string `
+        {
+            "type": "int",
+            "name" : "intValue", 
+            "namespace": "data"
+        }`;
+    Schema avro = check new (schema);
+    byte[]|error serializedValue = avro.toAvro("This is a string value");
+    test:assertTrue(serializedValue is error);
+    if serializedValue is error {
+        test:assertEquals(serializedValue.message(), "Avro serialization error");
+        error? cause = serializedValue.cause();
+        test:assertTrue(cause is error);
+        if cause is error {
+            test:assertEquals(cause.message(), "io.ballerina.lib.avro.serialize.AvroSerializationException: Value does not match with the Avro int schema");
+        }
+    }
+}
+
+@test:Config {
+   groups: ["primitive", "long", "negative"]
+}
+public isolated function testLongWithInvalidType() returns error? {
+    string schema = string `
+        {
+            "type": "long",
+            "name" : "longValue",
+            "namespace": "data"
+        }`;
+    Schema avro = check new (schema);
+    byte[]|error serializedValue = avro.toAvro(true);
+    test:assertTrue(serializedValue is error);
+    if serializedValue is error {
+        test:assertEquals(serializedValue.message(), "Avro serialization error");
+        error? cause = serializedValue.cause();
+        test:assertTrue(cause is error);
+        if cause is error {
+            test:assertEquals(cause.message(), "io.ballerina.lib.avro.serialize.AvroSerializationException: Value does not match with the Avro long schema");
+        }
+    }
+}
