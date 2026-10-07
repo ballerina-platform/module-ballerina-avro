@@ -6,6 +6,7 @@ authors = ["Ballerina"]
 export=["avro"]
 keywords = ["avro", "serialization", "deserialization", "serdes", "Type/Library", "Area/Built-in", "Name/Avro"]
 repository = "https://github.com/ballerina-platform/module-ballerina-avro"
+icon = "icon.png"
 license = ["Apache-2.0"]
 distribution = "2201.12.0"
 
