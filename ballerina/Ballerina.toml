@@ -1,10 +1,10 @@
 [package]
 org = "ballerina"
 name = "avro"
-version = "1.2.6"
+version = "1.2.7"
 authors = ["Ballerina"]
 export=["avro"]
-keywords = ["avro", "serialization", "deserialization", "serdes", "Type/Library", "Area/Built-in", "Name/Avro"]
+keywords = ["avro", "serialization", "deserialization", "serdes", "Type/Library", "Area/Built-in", "Area/Data Formats & Utilities", "Name/Avro"]
 repository = "https://github.com/ballerina-platform/module-ballerina-avro"
 icon = "icon.png"
 license = ["Apache-2.0"]
@@ -19,8 +19,8 @@ graalvmCompatible = true
 [[platform.java21.dependency]]
 groupId = "io.ballerina.lib"
 artifactId = "avro-native"
-version = "1.2.6"
-path = "../native/build/libs/avro-native-1.2.6.jar"
+version = "1.2.7"
+path = "../native/build/libs/avro-native-1.2.7-SNAPSHOT.jar"
 
 [[platform.java21.dependency]]
 groupId = "org.apache.avro"
